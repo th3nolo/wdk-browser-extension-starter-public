@@ -132,6 +132,7 @@ function App() {
       {/* ---------------- control rail ---------------- */}
       <aside className="rail">
         <div className="rail-brand"><span className="rb-mark">◈</span><div><div className="rb-t">WDK Wallet</div><div className="rb-s">Theme prototype</div></div></div>
+        <a className="rail-link" href="index.html"><Icon name="wallet" size={14} /> Back to overview</a>
 
         <RailGroup title="Flows" hint="10 core">
           <div className="flow-list">
