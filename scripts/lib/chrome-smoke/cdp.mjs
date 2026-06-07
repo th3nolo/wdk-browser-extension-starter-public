@@ -1,3 +1,5 @@
+import { spawn } from "node:child_process";
+import { existsSync } from "node:fs";
 import { createServer } from "node:http";
 
 export async function getFreePort() {
@@ -30,6 +32,26 @@ export async function waitForCdpStatus({ host, port, smokeUrl, timeout }) {
   }
   const suffix = lastStatus ? `; last status: ${lastStatus}` : lastError ? `: ${lastError}` : "";
   throw new Error(`CDP smoke status was not observed after ${timeout}ms${suffix}`);
+}
+
+export async function waitForWindowsCdpStatus({ port, smokeUrl, timeout }) {
+  const script = windowsCdpStatusScript({ port, smokeUrl, timeout });
+  const child = spawn(windowsNodePath(), ["--input-type=module", "-"], {
+    stdio: ["pipe", "pipe", "pipe"]
+  });
+  child.stdin.end(script);
+
+  let stdout = "";
+  let stderr = "";
+  child.stdout.on("data", chunk => { stdout += chunk.toString(); });
+  child.stderr.on("data", chunk => { stderr += chunk.toString(); });
+  const code = await new Promise((resolveExit) => child.on("exit", resolveExit));
+  const parsed = parseLastJson(stdout);
+  if (code !== 0 || !parsed?.ok) {
+    const detail = parsed?.error ?? stderr.trim() ?? stdout.trim() ?? "no Windows CDP output";
+    throw new Error(`Windows CDP smoke status was not observed: ${detail}`);
+  }
+  return parsed.statusText;
 }
 
 export async function openCdpTarget(host, port, url) {
@@ -246,4 +268,95 @@ function evaluateCdpViaBrowserTarget(browserWs, targetId, expression, options = 
       rejectAll(new Error("CDP browser websocket connection failed"));
     });
   });
+}
+
+function windowsNodePath() {
+  const candidates = [
+    "/mnt/c/Program Files/nodejs/node.exe",
+    "/mnt/c/Program Files (x86)/nodejs/node.exe"
+  ];
+  const path = candidates.find((candidate) => existsSync(candidate));
+  if (!path) throw new Error("Windows Node.js was not found; install Node.js for Windows or use a Linux browser binary.");
+  return path;
+}
+
+function parseLastJson(output) {
+  const line = output.trim().split(/\r?\n/).filter(Boolean).at(-1);
+  if (!line) return undefined;
+  try {
+    return JSON.parse(line);
+  } catch {
+    return undefined;
+  }
+}
+
+function windowsCdpStatusScript({ port, smokeUrl, timeout }) {
+  return `
+const port = ${JSON.stringify(port)};
+const smokeUrl = ${JSON.stringify(smokeUrl)};
+const timeoutMs = ${JSON.stringify(timeout)};
+
+try {
+  const statusText = await waitForStatus();
+  console.log(JSON.stringify({ ok: true, statusText }));
+} catch (error) {
+  console.log(JSON.stringify({ ok: false, error: error instanceof Error ? error.message : String(error) }));
+  process.exitCode = 1;
+}
+
+async function waitForStatus() {
+  const deadline = Date.now() + timeoutMs;
+  let lastStatus = "";
+  let lastError = "";
+  while (Date.now() < deadline) {
+    try {
+      const targets = await fetch("http://127.0.0.1:" + port + "/json/list").then((response) => response.json());
+      const target = targets.find((entry) => entry.type === "page" && entry.url === smokeUrl)
+        ?? targets.find((entry) => entry.type === "page" && entry.url.startsWith("http://127.0.0.1:"));
+      if (target?.webSocketDebuggerUrl) {
+        const status = await evaluate(target.webSocketDebuggerUrl, "document.getElementById('smoke-status')?.textContent || ''");
+        if (typeof status === "string") {
+          lastStatus = status;
+          if (status.includes("io.tether.wdk.browser-starter")) return status;
+        }
+      }
+    } catch (error) {
+      lastError = error instanceof Error ? error.message : String(error);
+    }
+    await new Promise((resolveDelay) => setTimeout(resolveDelay, 250));
+  }
+  const suffix = lastStatus ? "; last status: " + lastStatus : lastError ? ": " + lastError : "";
+  throw new Error("CDP smoke status was not observed after " + timeoutMs + "ms" + suffix);
+}
+
+function evaluate(wsUrl, expression) {
+  return new Promise((resolveEvaluation, rejectEvaluation) => {
+    const socket = new WebSocket(wsUrl);
+    const timeout = setTimeout(() => {
+      socket.close();
+      rejectEvaluation(new Error("CDP Runtime.evaluate timed out"));
+    }, 5000);
+    socket.addEventListener("open", () => {
+      socket.send(JSON.stringify({
+        id: 1,
+        method: "Runtime.evaluate",
+        params: { expression, returnByValue: true }
+      }));
+    });
+    socket.addEventListener("message", (event) => {
+      const message = JSON.parse(event.data.toString());
+      if (message.id !== 1) return;
+      clearTimeout(timeout);
+      socket.close();
+      if (message.error) rejectEvaluation(new Error(message.error.message));
+      else if (message.result?.exceptionDetails) rejectEvaluation(new Error(message.result.exceptionDetails.text ?? "CDP evaluation exception"));
+      else resolveEvaluation(message.result?.result?.value);
+    });
+    socket.addEventListener("error", () => {
+      clearTimeout(timeout);
+      rejectEvaluation(new Error("CDP websocket connection failed"));
+    });
+  });
+}
+`;
 }

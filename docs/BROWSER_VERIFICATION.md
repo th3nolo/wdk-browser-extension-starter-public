@@ -1,6 +1,6 @@
 # Browser Verification
 
-This starter targets Chrome and Brave through the shared Chromium Manifest V3 extension model. Automated CLI verification uses Chrome for Testing because official Chrome-branded builds removed command-line unpacked-extension loading in Chrome 137+, while Chrome for Testing keeps that development workflow available.
+This starter targets Chrome and Brave through the shared Chromium Manifest V3 extension model. Automated CLI verification uses Chrome for Testing because official Chrome-branded builds removed command-line unpacked-extension loading in Chrome 137+, while Chrome for Testing keeps that development workflow available. When a Windows Brave executable is available from WSL, the smoke runner uses Windows Node.js to read Chrome DevTools Protocol from the Windows side.
 
 ## Browser Setup
 
@@ -34,7 +34,7 @@ That variant opens the test dApp through a mapped non-local host, creates a temp
 pnpm run report:browsers
 ```
 
-This writes `.output/browser-verification.json` with the current local outcome for Chrome for Testing, branded Chrome, and Brave using the same provider-injection smoke runner. The report requires the deterministic Chrome for Testing check to pass and records branded Chrome/Brave as environment-specific observations. Set `BROWSER_MATRIX_TIMEOUT_MS` to adjust the per-browser timeout, or set `BROWSER_MATRIX` and `BROWSER_MATRIX_REQUIRED` to override the matrix.
+This writes `.output/browser-verification.json` with the current local outcome for Chrome for Testing, branded Chrome, and Brave using the same provider-injection smoke runner. The report requires the deterministic Chrome for Testing check to pass and records branded Chrome/Brave as environment-specific observations. Windows Brave can pass through the Windows-side CDP bridge; current Google Chrome branded builds still reject command-line unpacked-extension loading and should be verified manually from `chrome://extensions`. Set `BROWSER_MATRIX_TIMEOUT_MS` to adjust the per-browser timeout, or set `BROWSER_MATRIX` and `BROWSER_MATRIX_REQUIRED` to override the matrix.
 
 ## Explicit Chrome and Brave Smoke Commands
 
@@ -43,7 +43,7 @@ pnpm run smoke:chrome:real
 pnpm run smoke:brave
 ```
 
-These commands select Google Chrome or Brave directly. They are intentionally separate from the required automated gate because branded browser builds may block or vary command-line unpacked-extension behavior. Set `BROWSER_PATH` or `CHROME_PATH` if the browser is installed in a non-standard location.
+These commands select Google Chrome or Brave directly. They are intentionally separate from the required automated gate because branded browser builds may block or vary command-line unpacked-extension behavior. For a one-off Brave check, run `node scripts/chrome-extension-smoke.mjs --browser=brave`. Set `BROWSER_PATH` or `CHROME_PATH` if the browser is installed in a non-standard location.
 
 ## Headed CDP Smoke Commands
 

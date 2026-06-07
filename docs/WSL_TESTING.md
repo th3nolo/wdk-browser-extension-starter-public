@@ -10,7 +10,7 @@ This project can be tested from a Linux shell or WSL without driving a Windows b
 - `unzip`, used by `pnpm run setup:browser` to unpack Chrome for Testing.
 - Network access for the first pinned Chrome for Testing download and for normal dependency installation.
 
-Do not use Windows Chrome or Windows Edge from WSL for the automated extension smoke. Cross-OS browser launches can hit Windows profile locking, path translation, and Chrome DevTools Protocol networking issues. The deterministic CLI path is Linux Chrome for Testing or Linux Chromium.
+Use Linux Chrome for Testing or Linux Chromium for the deterministic automated smoke. Windows Brave can also be observed from WSL when Windows Node.js is installed, because the smoke runner reads Chrome DevTools Protocol from the Windows side. Current Google Chrome branded builds reject command-line unpacked-extension loading, so keep Chrome as a manual `chrome://extensions` install check.
 
 ## First-Time Setup
 
@@ -58,7 +58,7 @@ pnpm run smoke:chromium
 pnpm run report:browsers
 ```
 
-Expected result: `.output/browser-verification.json` has `"ok": true` and `"requiredBrowser": "cft"`. Branded Chrome and Brave entries may fail or time out in WSL because those browser builds are optional environment observations, not the deterministic CLI gate.
+Expected result: `.output/browser-verification.json` has `"ok": true` and `"requiredBrowser": "cft"`. A Windows Brave entry can pass when Brave and Windows Node.js are available. A branded Google Chrome entry may still fail because current Google Chrome builds reject command-line unpacked-extension loading; that does not replace the manual install check.
 
 ## Full Local Gate
 

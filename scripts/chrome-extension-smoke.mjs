@@ -1,7 +1,7 @@
 import { rm } from "node:fs/promises";
 import { createSmokeConfig } from "./lib/chrome-smoke/config.mjs";
 import { decodeHtml, launchCdpBrowser, runBrowser, windowsHostIp } from "./lib/chrome-smoke/browser.mjs";
-import { getFreePort, waitForCdpStatus } from "./lib/chrome-smoke/cdp.mjs";
+import { getFreePort, waitForCdpStatus, waitForWindowsCdpStatus } from "./lib/chrome-smoke/cdp.mjs";
 import { runDappFlow } from "./lib/chrome-smoke/dapp-flow.mjs";
 import { startSmokeServer, validateStatus } from "./lib/chrome-smoke/server.mjs";
 
@@ -94,8 +94,13 @@ async function runCdpSmoke() {
 
   const launched = await launchCdpBrowser(config.browserPath, browserArgs);
   try {
-    const statusText = await waitForCdpStatus({ host: cdpHost, port: debugPort, smokeUrl, timeout: config.timeoutMs });
+    const statusText = config.isWindowsBrowser
+      ? await waitForWindowsCdpStatus({ port: debugPort, smokeUrl, timeout: config.timeoutMs })
+      : await waitForCdpStatus({ host: cdpHost, port: debugPort, smokeUrl, timeout: config.timeoutMs });
     const status = JSON.parse(statusText);
+    if (config.isWindowsBrowser && config.isDappFlow) {
+      throw new Error("Deep dApp smoke is not supported for Windows browser CDP verification.");
+    }
     const dappFlow = config.isDappFlow
       ? await runDappFlow(status, { ...config, cdpHost, debugPort, serverPort, smokeUrl })
       : undefined;
