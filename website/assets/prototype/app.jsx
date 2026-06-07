@@ -183,6 +183,7 @@ function App() {
           <button className="reset" onClick={() => setOv({})}><Icon name="refresh" size={13} /> Reset to preset</button>
         </RailGroup>
 
+        <a className="rail-link" href="index.html"><Icon name="wallet" size={14} /> Back to overview</a>
         <a className="rail-link" href="design-system.html"><Icon name="layers" size={14} /> Open the design system</a>
       </aside>
 
