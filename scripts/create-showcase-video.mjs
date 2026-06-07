@@ -1,4 +1,4 @@
-import { mkdir, stat, writeFile } from "node:fs/promises";
+import { copyFile, mkdir, stat, writeFile } from "node:fs/promises";
 import { spawnSync } from "node:child_process";
 import { join, resolve } from "node:path";
 
@@ -9,6 +9,7 @@ const outputDir = join(root, ".output", "showcase-video");
 const frameDir = join(outputDir, "frames");
 const specPath = join(outputDir, "showcase-video-scenes.json");
 const videoPath = join(outputDir, "wdk-browser-extension-high-quality-showcase.mp4");
+const publicVideoPath = join(root, "docs", "showcase-video.mp4");
 const secondsPerScene = Number(process.env.SHOWCASE_VIDEO_SECONDS_PER_SCENE ?? "12");
 
 const captures = {
@@ -196,11 +197,13 @@ const ffmpeg = spawnSync("ffmpeg", [
 if (ffmpeg.status !== 0) {
   throw new Error(`ffmpeg showcase video encode failed:\n${ffmpeg.stderr}`);
 }
+await copyFile(videoPath, publicVideoPath);
 
 const smoke = runJson("node", ["scripts/showcase-video-smoke.mjs"]);
 console.log(JSON.stringify({
   ok: true,
   videoPath,
+  publicVideoPath,
   specPath,
   scenes: scenes.length,
   secondsPerScene,

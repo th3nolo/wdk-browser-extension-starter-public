@@ -4,6 +4,7 @@ import { join, resolve } from "node:path";
 
 const root = resolve(".");
 const videoPath = join(root, ".output", "showcase-video", "wdk-browser-extension-high-quality-showcase.mp4");
+const publicVideoPath = join(root, "docs", "showcase-video.mp4");
 const specPath = join(root, ".output", "showcase-video", "showcase-video-scenes.json");
 const requiredText = [
   "1920x1080 MP4 output",
@@ -18,6 +19,9 @@ const maxDurationSeconds = 300;
 const file = await stat(videoPath).catch(() => undefined);
 if (!file?.isFile()) throw new Error(`High-quality showcase video was not found at ${videoPath}`);
 if (file.size <= 0) throw new Error("High-quality showcase video is empty");
+const publicFile = await stat(publicVideoPath).catch(() => undefined);
+if (!publicFile?.isFile()) throw new Error(`Public showcase video was not found at ${publicVideoPath}`);
+if (publicFile.size !== file.size) throw new Error("Public showcase video does not match the generated output size");
 
 const spec = JSON.parse(await readFile(specPath, "utf8").catch(() => "{}"));
 if (!Array.isArray(spec.scenes) || spec.scenes.length < 10) {
@@ -43,6 +47,7 @@ if (dimensions.width !== 1920 || dimensions.height !== 1080) {
 console.log(JSON.stringify({
   ok: true,
   videoPath,
+  publicVideoPath,
   bytes: file.size,
   durationSeconds,
   durationRangeSeconds: [minDurationSeconds, maxDurationSeconds],

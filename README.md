@@ -12,6 +12,8 @@ The showcase is UI only: it does not import extension runtime code and never han
 
 ![WDK browser extension showcase](docs/showcase.gif)
 
+Demo video: [`docs/showcase-video.mp4`](docs/showcase-video.mp4) (2m24s, 1920x1080).
+
 ## Features
 
 | Area | Implementation |
