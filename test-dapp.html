@@ -1,0 +1,437 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>WDK Wallet Test dApp</title>
+    <style>
+      :root {
+        --ink: #101828;
+        --muted: #667085;
+        --surface: #ffffff;
+        --soft: #f8fafc;
+        --border: #d8e0ea;
+        --brand: #067a6f;
+        --brand-strong: #075e56;
+        --blue: #2563eb;
+        color: var(--ink);
+        background: #eaf0f5;
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        padding: 40px 20px;
+        background:
+          radial-gradient(circle at 10% 0%, rgb(6 122 111 / 14%), transparent 28%),
+          radial-gradient(circle at 90% 4%, rgb(37 99 235 / 11%), transparent 26%),
+          #eaf0f5;
+      }
+
+      .app-shell {
+        max-width: 980px;
+        margin: 0 auto;
+      }
+
+      .hero {
+        display: grid;
+        gap: 10px;
+        margin-bottom: 22px;
+      }
+
+      .brand-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .brand-mark {
+        display: grid;
+        place-items: center;
+        width: 38px;
+        height: 38px;
+        border-radius: 8px;
+        color: #fff;
+        background: linear-gradient(145deg, #078476, #134e5e 58%, #263f8f);
+        box-shadow: 0 12px 28px rgb(6 122 111 / 18%);
+        font-weight: 800;
+      }
+
+      h1 {
+        margin: 0;
+        font-size: 34px;
+        line-height: 1.1;
+      }
+
+      p {
+        max-width: 680px;
+        margin: 0;
+        color: var(--muted);
+        line-height: 1.5;
+      }
+
+      .toolbar {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin: 22px 0;
+      }
+
+      button {
+        border: 0;
+        border-radius: 8px;
+        min-height: 40px;
+        padding: 0 14px;
+        color: white;
+        background: var(--brand);
+        box-shadow: 0 1px 0 rgb(16 24 40 / 6%);
+        cursor: pointer;
+      }
+
+      button:hover {
+        background: var(--brand-strong);
+      }
+
+      button.secondary {
+        color: #223049;
+        background: #e7edf5;
+        box-shadow: none;
+      }
+
+      button.secondary:hover {
+        background: #dfe7f1;
+      }
+
+      button:disabled {
+        opacity: 0.45;
+        cursor: not-allowed;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        gap: 16px;
+      }
+
+      .panel {
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 16px;
+        background: rgb(255 255 255 / 94%);
+        box-shadow: 0 12px 32px rgb(16 24 40 / 8%);
+      }
+
+      .panel h2 {
+        margin: 0 0 12px;
+        font-size: 16px;
+      }
+
+      dl {
+        display: grid;
+        gap: 10px;
+        margin: 0;
+      }
+
+      dl div {
+        display: grid;
+        grid-template-columns: 96px minmax(0, 1fr);
+        gap: 10px;
+      }
+
+      dt {
+        color: var(--muted);
+        font-size: 13px;
+        font-weight: 700;
+      }
+
+      dd {
+        margin: 0;
+        overflow-wrap: anywhere;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        font-size: 13px;
+      }
+
+      pre {
+        min-height: 220px;
+        margin: 0;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 16px;
+        background: var(--soft);
+        white-space: pre-wrap;
+        overflow-wrap: anywhere;
+        box-shadow: inset 0 1px 2px rgb(16 24 40 / 4%);
+      }
+
+      .status-strip {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
+        margin-bottom: 16px;
+      }
+
+      .status-pill {
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 10px;
+        background: rgb(255 255 255 / 78%);
+      }
+
+      .status-pill span {
+        display: block;
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 700;
+      }
+
+      .status-pill strong {
+        display: block;
+        margin-top: 4px;
+        font-size: 13px;
+      }
+
+      @media (max-width: 760px) {
+        .grid {
+          grid-template-columns: 1fr;
+        }
+
+        .status-strip {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="app-shell">
+      <header class="hero">
+        <div class="brand-row">
+          <span class="brand-mark" aria-hidden="true">W</span>
+          <h1>WDK Wallet Test dApp</h1>
+        </div>
+        <p>Verify injected wallet discovery, account access, origin approval, network reads, and per-request signature approval from a real browser page.</p>
+      </header>
+
+      <div class="status-strip" aria-label="Connection state">
+        <div class="status-pill"><span>Provider</span><strong id="provider">not detected</strong></div>
+        <div class="status-pill"><span>Chain ID</span><strong id="chain-id">unknown</strong></div>
+        <div class="status-pill"><span>Account</span><strong id="account">not connected</strong></div>
+      </div>
+
+      <div class="toolbar">
+        <button id="discover">Discover providers</button>
+        <button id="chain" class="secondary">Read chain</button>
+        <button id="accounts" class="secondary">Read accounts</button>
+        <button id="connect">Connect wallet</button>
+        <button id="sign">Sign message</button>
+        <button id="typed-sign">Sign typed data</button>
+        <button id="erc20-approve">Token approval</button>
+      </div>
+
+      <div class="grid">
+        <section class="panel">
+          <h2>Session details</h2>
+          <dl>
+            <div><dt>Provider</dt><dd id="provider-detail">not detected</dd></div>
+            <div><dt>Chain ID</dt><dd id="chain-id-detail">unknown</dd></div>
+            <div><dt>Account</dt><dd id="account-detail">not connected</dd></div>
+            <div><dt>Signature</dt><dd id="signature">none</dd></div>
+          </dl>
+        </section>
+        <section>
+          <pre id="output">Open the extension, create/unlock a wallet, then discover providers.</pre>
+        </section>
+      </div>
+    </main>
+
+    <script>
+      const providers = [];
+      const state = {
+        provider: undefined,
+        chainId: "unknown",
+        account: "",
+        signature: ""
+      };
+
+      const output = document.getElementById("output");
+      const fields = {
+        provider: document.getElementById("provider"),
+        providerDetail: document.getElementById("provider-detail"),
+        chainId: document.getElementById("chain-id"),
+        chainIdDetail: document.getElementById("chain-id-detail"),
+        account: document.getElementById("account"),
+        accountDetail: document.getElementById("account-detail"),
+        signature: document.getElementById("signature")
+      };
+
+      function selectedProvider() {
+        return state.provider || providers[0]?.provider || window.ethereum;
+      }
+
+      function write(label, value) {
+        output.textContent = `${label}\n${typeof value === "string" ? value : JSON.stringify(value, null, 2)}`;
+      }
+
+      function writeError(label, error) {
+        output.textContent = `${label}\n${error instanceof Error ? error.message : String(error)}`;
+      }
+
+      function render() {
+        const info = providers[0]?.info;
+        const providerText = info ? `${info.name} (${info.rdns})` : state.provider ? "window.ethereum" : "not detected";
+        const accountText = state.account || "not connected";
+        fields.provider.textContent = providerText;
+        fields.providerDetail.textContent = providerText;
+        fields.chainId.textContent = state.chainId;
+        fields.chainIdDetail.textContent = state.chainId;
+        fields.account.textContent = accountText;
+        fields.accountDetail.textContent = accountText;
+        fields.signature.textContent = state.signature || "none";
+      }
+
+      window.addEventListener("eip6963:announceProvider", (event) => {
+        providers.push(event.detail);
+        state.provider = event.detail.provider;
+        render();
+        write("EIP-6963 providers", providers.map((entry) => entry.info));
+      });
+
+      document.getElementById("discover").onclick = () => {
+        providers.length = 0;
+        window.dispatchEvent(new Event("eip6963:requestProvider"));
+        window.setTimeout(() => {
+          if (!providers.length && window.ethereum) {
+            state.provider = window.ethereum;
+            render();
+            write("Fallback provider", { isWDKWallet: Boolean(window.ethereum.isWDKWallet) });
+          }
+        }, 250);
+      };
+
+      document.getElementById("chain").onclick = async () => {
+        try {
+          const provider = selectedProvider();
+          state.chainId = await provider.request({ method: "eth_chainId" });
+          render();
+          write("eth_chainId", state.chainId);
+        } catch (error) {
+          writeError("eth_chainId failed", error);
+        }
+      };
+
+      document.getElementById("accounts").onclick = async () => {
+        try {
+          const provider = selectedProvider();
+          const accounts = await provider.request({ method: "eth_accounts" });
+          state.account = accounts[0] || "";
+          render();
+          write("eth_accounts", accounts);
+        } catch (error) {
+          writeError("eth_accounts failed", error);
+        }
+      };
+
+      document.getElementById("connect").onclick = async () => {
+        try {
+          const provider = selectedProvider();
+          const accounts = await provider.request({ method: "eth_requestAccounts" });
+          state.account = accounts[0] || "";
+          render();
+          write("eth_requestAccounts", accounts);
+        } catch (error) {
+          writeError("eth_requestAccounts pending or failed", error);
+        }
+      };
+
+      document.getElementById("sign").onclick = async () => {
+        try {
+          const provider = selectedProvider();
+          if (!state.account) {
+            const accounts = await provider.request({ method: "eth_accounts" });
+            state.account = accounts[0] || "";
+          }
+          if (!state.account) throw new Error("Connect and approve this dApp before signing");
+          write("personal_sign pending", "Approve or reject the request in the WDK Wallet confirmation popup.");
+          state.signature = await provider.request({ method: "personal_sign", params: ["WDK browser extension starter", state.account] });
+          render();
+          write("personal_sign", state.signature);
+        } catch (error) {
+          writeError("personal_sign failed", error);
+        }
+      };
+
+      document.getElementById("typed-sign").onclick = async () => {
+        try {
+          const provider = selectedProvider();
+          if (!state.account) {
+            const accounts = await provider.request({ method: "eth_accounts" });
+            state.account = accounts[0] || "";
+          }
+          if (!state.account) throw new Error("Connect and approve this dApp before signing typed data");
+          const chainIdHex = await provider.request({ method: "eth_chainId" });
+          const chainId = Number.parseInt(chainIdHex, 16);
+          const typedData = {
+            types: {
+              Message: [
+                { name: "contents", type: "string" },
+                { name: "nonce", type: "uint256" }
+              ]
+            },
+            primaryType: "Message",
+            domain: {
+              name: "WDK Demo",
+              version: "1",
+              chainId,
+              verifyingContract: "0x0000000000000000000000000000000000000000"
+            },
+            message: {
+              contents: "Review EIP-712 verification details",
+              nonce: 1
+            }
+          };
+          write("eth_signTypedData_v4 pending", "Approve or reject the typed-data request in the WDK Wallet confirmation popup.");
+          state.signature = await provider.request({ method: "eth_signTypedData_v4", params: [state.account, JSON.stringify(typedData)] });
+          render();
+          write("eth_signTypedData_v4", state.signature);
+        } catch (error) {
+          writeError("eth_signTypedData_v4 failed", error);
+        }
+      };
+
+      document.getElementById("erc20-approve").onclick = async () => {
+        try {
+          const provider = selectedProvider();
+          if (!state.account) {
+            const accounts = await provider.request({ method: "eth_accounts" });
+            state.account = accounts[0] || "";
+          }
+          if (!state.account) throw new Error("Connect and approve this dApp before requesting a token approval");
+          const token = "0x0000000000000000000000000000000000000003";
+          const spender = "0x0000000000000000000000000000000000000004";
+          const amount = 1000n;
+          const data = "0x095ea7b3" + abiAddress(spender) + abiUint(amount);
+          write("eth_sendTransaction pending", "Approve or reject the decoded ERC-20 approval in the WDK Wallet confirmation popup.");
+          const hash = await provider.request({ method: "eth_sendTransaction", params: [{ to: token, value: "0x0", data }] });
+          write("eth_sendTransaction", hash);
+        } catch (error) {
+          writeError("eth_sendTransaction failed", error);
+        }
+      };
+
+      function abiAddress(address) {
+        return `${"0".repeat(24)}${address.slice(2).toLowerCase()}`;
+      }
+
+      function abiUint(value) {
+        return value.toString(16).padStart(64, "0");
+      }
+
+      render();
+      window.dispatchEvent(new Event("eip6963:requestProvider"));
+    </script>
+  </body>
+</html>

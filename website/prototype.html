@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>WDK Wallet — Interactive Prototype</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;450;500;600;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="assets/wallet.css" />
+<style>
+  :root {
+    --n-0:#09090B; --n-1:#0E0E11; --n-2:#141418; --n-3:#1C1C21; --n-4:#26262D;
+    --line-1:#1F1F25; --line-2:#2E2E37; --line-3:#41414C;
+    --t-hi:#F3F1EC; --t-mid:#A29E96; --t-lo:#67635C; --t-dis:#403E3A;
+    --acc:#5EEAD4; --acc-ink:#04211E;
+    --go:#4ADE80; --stop:#F2784B;
+    --e2:0 1px 0 rgba(255,255,255,.03),0 10px 30px -14px rgba(0,0,0,.7);
+    --e3:0 1px 0 rgba(255,255,255,.04),0 24px 60px -28px rgba(0,0,0,.9);
+    --r-pill:999px; --r-ctl:8px; --r-card:6px;
+    --sans:'IBM Plex Sans',ui-sans-serif,system-ui,sans-serif;
+    --mono:'IBM Plex Mono',ui-monospace,monospace;
+    --t-fast:130ms cubic-bezier(.4,0,.2,1);
+
+    /* backward-compatible aliases */
+    --pg: var(--n-0); --pg-2: var(--n-1); --pg-card: var(--n-2); --pg-soft: var(--n-3);
+    --pg-border: var(--line-1); --pg-border-2: var(--line-2);
+    --pg-ink: var(--t-hi); --pg-mut: var(--t-mid); --pg-faint: var(--t-lo);
+    --pg-acc: var(--acc);
+    --pg-head: var(--sans); --pg-body: var(--sans); --pg-mono: var(--mono);
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--pg); color: var(--pg-ink); font-family: var(--pg-body); -webkit-font-smoothing: antialiased; }
+  .proto { display: grid; grid-template-columns: 322px 1fr; min-height: 100vh; }
+
+  /* ---------------- control rail ---------------- */
+  .rail { position: sticky; top: 0; align-self: start; height: 100vh; overflow-y: auto; border-right: 1px solid var(--pg-border); background: var(--pg-2); padding: 18px 16px 28px; scrollbar-width: thin; }
+  .rail::-webkit-scrollbar { width: 7px; } .rail::-webkit-scrollbar-thumb { background: var(--pg-border-2); border-radius: 99px; }
+  .rail-brand { display: flex; align-items: center; gap: 11px; padding: 4px 4px 16px; }
+  .rb-mark { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 10px; background: linear-gradient(145deg, #2dd4bf, #6366f1); color: #04201d; font-size: 16px; }
+  .rb-t { font-family: var(--pg-head); font-weight: 700; font-size: 15px; }
+  .rb-s { color: var(--pg-mut); font-size: 11.5px; }
+
+  .cg { padding: 14px 0; border-top: 1px solid var(--pg-border); }
+  .cg-h { display: flex; align-items: center; gap: 8px; font-family: var(--pg-mono); font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--pg-faint); margin-bottom: 12px; }
+  .cg-hint { margin-left: auto; padding: 2px 7px; border-radius: 6px; background: var(--pg-card); color: var(--pg-mut); letter-spacing: 0; }
+
+  .flow-list { display: flex; flex-direction: column; gap: 4px; }
+  .flow { display: flex; align-items: center; gap: 11px; padding: 9px 10px; border: 1px solid transparent; border-radius: 10px; background: transparent; color: var(--pg-ink); text-align: left; cursor: pointer; transition: background .12s, border-color .12s; font-family: var(--pg-body); }
+  .flow:hover { background: var(--pg-card); }
+  .flow.on { background: var(--pg-card); border-color: var(--pg-border-2); }
+  .flow-n { font-family: var(--pg-mono); font-size: 11px; color: var(--pg-faint); }
+  .flow.on .flow-n { color: var(--pg-acc); }
+  .flow-tx { display: flex; flex-direction: column; line-height: 1.25; min-width: 0; }
+  .flow-l { font-size: 13.5px; font-weight: 600; white-space: nowrap; }
+  .flow-d { font-size: 11px; color: var(--pg-mut); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .flow-bonus { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+  .bchip { padding: 6px 10px; border-radius: 8px; border: 1px solid var(--pg-border-2); background: var(--pg-card); color: var(--pg-mut); font-size: 11.5px; font-weight: 600; cursor: pointer; font-family: var(--pg-body); }
+  .bchip:hover, .bchip.on { color: var(--pg-ink); border-color: var(--pg-acc); }
+
+  .presets { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+  .preset { display: flex; align-items: center; gap: 8px; padding: 8px 9px; border: 1px solid var(--pg-border); border-radius: 9px; background: var(--pg-card); color: var(--pg-ink); cursor: pointer; text-align: left; font-family: var(--pg-body); }
+  .preset:hover { border-color: var(--pg-border-2); }
+  .preset.on { border-color: var(--pg-acc); background: rgba(45,212,191,.08); }
+  .pdot { width: 14px; height: 14px; border-radius: 50%; flex: 0 0 auto; box-shadow: inset 0 0 0 1px rgba(255,255,255,.18); }
+  .ptx { display: flex; flex-direction: column; line-height: 1.2; min-width: 0; }
+  .pn { font-size: 12.5px; font-weight: 600; }
+  .pg { font-size: 10px; color: var(--pg-mut); }
+
+  .ctl { display: flex; flex-direction: column; gap: 7px; margin-bottom: 12px; }
+  .ctl-l { font-size: 11.5px; font-weight: 600; color: var(--pg-mut); }
+  .opts { display: flex; flex-wrap: wrap; gap: 5px; }
+  .opt { padding: 6px 10px; border-radius: 8px; border: 1px solid var(--pg-border-2); background: var(--pg-card); color: var(--pg-mut); font-size: 11.5px; font-weight: 600; cursor: pointer; text-transform: capitalize; font-family: var(--pg-body); }
+  .opt:hover { color: var(--pg-ink); }
+  .opt.on { background: var(--pg-acc); color: #04201d; border-color: var(--pg-acc); }
+  .swatches { display: flex; flex-wrap: wrap; gap: 7px; }
+  .sw2 { width: 26px; height: 26px; border-radius: 7px; border: 2px solid transparent; cursor: pointer; box-shadow: inset 0 0 0 1px rgba(255,255,255,.18); }
+  .sw2.on { border-color: var(--pg-ink); }
+  .reset { display: inline-flex; align-items: center; gap: 6px; margin-top: 2px; padding: 7px 11px; border-radius: 8px; border: 1px dashed var(--pg-border-2); background: transparent; color: var(--pg-mut); font-size: 11.5px; cursor: pointer; font-family: var(--pg-body); }
+  .reset:hover { color: var(--pg-ink); border-color: var(--pg-mut); }
+  .rail-link { display: inline-flex; align-items: center; gap: 8px; margin-top: 16px; padding: 11px 14px; border-radius: 10px; background: var(--pg-card); border: 1px solid var(--pg-border-2); color: var(--pg-ink); text-decoration: none; font-size: 13px; font-weight: 600; }
+  .rail-link:hover { border-color: var(--pg-acc); }
+
+  /* ---------------- stage ---------------- */
+  .stage { position: relative; display: flex; padding: 48px 40px; overflow: auto;
+    background: radial-gradient(circle at 20% 0%, rgba(45,212,191,.06), transparent 40%), radial-gradient(circle at 100% 100%, rgba(99,102,241,.06), transparent 45%), var(--pg); }
+  .scene { display: flex; align-items: flex-start; gap: 38px; margin: auto; }
+
+  .browser { width: 560px; height: 848px; border-radius: 14px; overflow: hidden; border: 1px solid var(--pg-border-2); background: #0d1017; box-shadow: 0 40px 90px rgba(0,0,0,.5); display: flex; flex-direction: column; }
+  .bchrome { display: flex; align-items: center; gap: 12px; padding: 11px 14px; background: #161a24; border-bottom: 1px solid var(--pg-border); }
+  .lights { display: flex; gap: 7px; } .lights i { width: 11px; height: 11px; border-radius: 50%; display: block; }
+  .btab { font-size: 11.5px; color: var(--pg-mut); padding: 5px 11px; border-radius: 7px 7px 0 0; background: #0d1017; }
+  .burl { flex: 1; display: flex; align-items: center; gap: 6px; padding: 7px 12px; border-radius: 8px; background: #0d1017; color: var(--pg-mut); font-family: var(--pg-mono); font-size: 11px; }
+  .bext { display: grid; place-items: center; width: 28px; height: 28px; border-radius: 7px; background: rgba(45,212,191,.14); color: var(--pg-acc); }
+  .bview { flex: 1; display: grid; place-items: center; padding: 24px; }
+  .dapp-mock { width: 100%; max-width: 340px; }
+  .dm-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; }
+  .dm-logo { font-family: var(--pg-head); font-weight: 700; color: var(--pg-ink); opacity: .8; }
+  .dm-conn { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; color: var(--pg-mut); }
+  .dm-card { border: 1px solid var(--pg-border); border-radius: 16px; background: var(--pg-card); padding: 16px; }
+  .dm-row { display: flex; align-items: center; justify-content: space-between; padding: 14px; border-radius: 12px; background: var(--pg-soft); color: var(--pg-mut); font-size: 13px; }
+  .dm-row strong { color: var(--pg-ink); font-family: var(--pg-mono); }
+  .dm-swap { width: 32px; height: 32px; margin: -8px auto; position: relative; z-index: 1; display: grid; place-items: center; border-radius: 9px; background: var(--pg-card); border: 1px solid var(--pg-border-2); color: var(--pg-mut); }
+  .dm-btn { margin-top: 14px; padding: 13px; border-radius: 12px; text-align: center; background: rgba(45,212,191,.16); color: var(--pg-acc); font-weight: 700; }
+  .dm-note { text-align: center; color: var(--pg-faint); font-size: 11px; margin-top: 16px; }
+
+  .popup-zone { position: relative; padding-top: 6px; }
+  .popup-caret { position: absolute; top: -2px; left: 40px; width: 14px; height: 14px; background: #161a24; border-left: 1px solid var(--pg-border-2); border-top: 1px solid var(--pg-border-2); transform: rotate(45deg); }
+  .popup { width: 384px; border-radius: 14px; overflow: hidden; border: 1px solid var(--pg-border-2); background: #161a24; box-shadow: 0 40px 90px rgba(0,0,0,.6); }
+  .popup-bar { display: flex; align-items: center; gap: 8px; padding: 9px 13px; background: #161a24; border-bottom: 1px solid var(--pg-border); }
+  .pb-d { width: 9px; height: 9px; border-radius: 50%; background: #28c840; }
+  .pb-t { font-size: 11px; color: var(--pg-mut); font-family: var(--pg-mono); }
+  .popup-screen { position: relative; width: 384px; height: 848px; overflow: hidden; background: var(--bg); }
+  .popup-screen.wlt .shell { height: 100%; }
+
+  .toast { position: absolute; left: 50%; bottom: 22px; transform: translateX(-50%); display: inline-flex; align-items: center; gap: 8px; padding: 10px 16px; border-radius: 999px; background: #0d1017; border: 1px solid var(--pg-acc); color: var(--pg-ink); font-size: 13px; font-weight: 600; box-shadow: 0 12px 30px rgba(0,0,0,.5); animation: tin .2s ease; z-index: 60; }
+  @keyframes tin { from { opacity: 0; transform: translate(-50%, 8px); } to { opacity: 1; transform: translate(-50%, 0); } }
+
+  @media (max-width: 1180px) {
+    .proto { grid-template-columns: 300px 1fr; }
+    .scene { flex-direction: column-reverse; align-items: center; gap: 24px; }
+    .popup-caret { display: none; }
+    .browser { width: 384px; height: 420px; }
+  }
+  @media (max-width: 860px) {
+    .proto { grid-template-columns: 1fr; }
+    .rail { position: static; height: auto; border-right: 0; border-bottom: 1px solid var(--pg-border); }
+  }
+
+  /* ===================== NEW-LANGUAGE NORMALIZATION ===================== */
+  .rb-t{font-weight:600;}
+  /* neutral brand mark — no gradient gloss */
+  .rb-mark{background:var(--n-3)!important;box-shadow:inset 0 0 0 1px var(--line-2);color:var(--t-hi);}
+  /* stage: hairline-grid texture, not colored glow */
+  .stage{background:var(--n-0)!important;}
+  .stage::before{content:"";position:absolute;inset:0;pointer-events:none;z-index:0;
+    background-image:linear-gradient(var(--line-1) 1px,transparent 1px),linear-gradient(90deg,var(--line-1) 1px,transparent 1px);
+    background-size:64px 64px;
+    -webkit-mask-image:radial-gradient(120% 80% at 50% 0%,#000 0%,transparent 70%);
+    mask-image:radial-gradient(120% 80% at 50% 0%,#000 0%,transparent 70%);opacity:.5;}
+  .scene{position:relative;z-index:1;}
+  /* radius by role — exactly three values */
+  .rb-mark,.flow,.preset,.rail-link,.bext,.dm-swap,.sw2,.opt,.bchip,.reset,.burl,.btab{border-radius:var(--r-ctl);}
+  .browser,.popup,.dm-card,.dm-row,.dm-btn,.cg-hint{border-radius:var(--r-card);}
+  /* elevation toward the popup (the important surface) */
+  .browser{border:1px solid var(--line-2);box-shadow:var(--e3);}
+  .popup{box-shadow:var(--e3);}
+  /* focus-visible double-ring */
+  .flow:focus-visible,.preset:focus-visible,.opt:focus-visible,.bchip:focus-visible,.sw2:focus-visible,.rail-link:focus-visible{outline:none;box-shadow:0 0 0 2px var(--n-1),0 0 0 4px var(--line-3);}
+</style>
+</head>
+<body>
+  <div id="root"></div>
+  <noscript>This static UI showcase needs JavaScript. It is not the browser-extension runtime and never handles wallet secrets.</noscript>
+  <template id="__bundler_thumbnail">
+    <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><rect width="100" height="100" rx="20" fill="#0a0c11"/><rect x="30" y="22" width="40" height="56" rx="8" fill="#12151d" stroke="#2dd4bf" stroke-width="2"/><circle cx="50" cy="40" r="7" fill="#2dd4bf"/><rect x="38" y="54" width="24" height="4" rx="2" fill="#6366f1"/><rect x="38" y="62" width="16" height="4" rx="2" fill="#313a4c"/></svg>
+  </template>
+
+  <!-- Static showcase only: these pinned CDN scripts power the prototype page.
+       The actual extension runtime is bundled by WXT and does not import this page. -->
+  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+  <script src="assets/theme-engine.js"></script>
+  <script type="text/babel" src="assets/prototype/icons.jsx"></script>
+  <script type="text/babel" src="assets/prototype/data.jsx"></script>
+  <script type="text/babel" src="assets/prototype/ui.jsx"></script>
+  <script type="text/babel" src="assets/prototype/flows-auth.jsx"></script>
+  <script type="text/babel" src="assets/prototype/flows-wallet.jsx"></script>
+  <script type="text/babel" src="assets/prototype/flows-dapp.jsx"></script>
+  <script type="text/babel" src="assets/prototype/app.jsx"></script>
+</body>
+</html>

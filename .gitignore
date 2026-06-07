@@ -1,0 +1,25 @@
+node_modules/
+.env
+.env.*
+# secret / wallet key material — never commit
+*.key
+*.pem
+*.p12
+*.pfx
+*.keystore
+*.mnemonic
+*.seed
+secrets.json
+.secrets/
+.output/
+.wxt/
+*.log
+dist/
+coverage/
+.tmp-chrome-profile-*/
+.tmp-edge-profile-*/
+.tmp-brave-profile-*/
+.tmp-manual-edge/
+.tmp-manual-chrome/
+.tmp-demo-profile-*/
+.tmp-popup-profile-*/

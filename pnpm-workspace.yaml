@@ -1,0 +1,22 @@
+packages:
+  - .
+
+minimumReleaseAge: 4320
+minimumReleaseAgeStrict: true
+trustPolicy: no-downgrade
+trustPolicyExclude:
+  # These versions are already pinned by the pre-migration npm lockfile and older than 72 hours.
+  # Keep exceptions version-specific so future transitive updates still hit the trust gate.
+  - "undici-types@6.21.0 || 6.19.8"
+  - "vite@5.4.21"
+  - "@webext-core/isolated-element@1.1.5"
+  - "semver@6.3.1"
+  - "bare-fetch@2.9.1"
+  - "tinyexec@1.2.2"
+overrides:
+  "@tetherto/wdk-wallet": 1.0.0-beta.9
+allowBuilds:
+  esbuild: true
+  protobufjs: true
+  secp256k1: true
+  spawn-sync: true

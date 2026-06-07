@@ -1,0 +1,1981 @@
+/* ============================================================================
+   WDK Wallet UI — token-driven component styles.
+   ----------------------------------------------------------------------------
+   Ported from the white-label prototype's wallet.css. Every value references a
+   semantic token emitted by the theme engine (src/ui/theme/theme-engine.ts) and
+   written as inline CSS custom properties onto the `.wlt` popup root (#root) by
+   `applySkinById` in entrypoints/popup/main.tsx — so swapping the skin rebrands
+   the whole wallet with no component changes.
+
+   Everything is scoped under `.wlt`. Adaptations from the prototype:
+   - `.shell` is pinned to the fixed popup geometry (410px / 600px) instead of
+     the prototype's 100%/100% device-frame sizing, so popup window sizing, the
+     approval-window auto-close, and the real-UI smoke geometry don't regress.
+   - `--transition` is kept as a wallet-local var (the engine does not emit it).
+   - The shell glow/noise layers stay `pointer-events:none` below `.shell > *`
+     so they can never intercept the Connect click (smoke uses elementFromPoint).
+   - Website harness classes (.proto/.rail/.stage/.scene/.popup/.browser/.flow…)
+     are intentionally NOT ported — only `.wlt`-scoped component styles live here.
+   ========================================================================== */
+
+/* Sane fallbacks so the document chrome (body) and any pre-theme paint have a
+   dark surface; the engine's inline vars on .wlt override these for components. */
+:root {
+  color-scheme: dark;
+  --bg: #0b0d12;
+  --ink: #e7eaf1;
+}
+
+html,
+body {
+  margin: 0;
+  min-width: 410px;
+  overflow-x: hidden;
+  color: var(--ink);
+  background: var(--bg);
+}
+
+/* ----------------------------------------------------------------------------
+   Root scope + base
+---------------------------------------------------------------------------- */
+.wlt {
+  --tap: 44px;
+  /* The engine does not emit --transition; keep it wallet-local (used widely). */
+  --transition: 0.15s;
+  font-family: var(--font-body);
+  color: var(--ink);
+  font-size: 14px;
+  line-height: 1.45;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+.wlt *,
+.wlt *::before,
+.wlt *::after {
+  box-sizing: border-box;
+}
+
+.wlt button,
+.wlt input,
+.wlt textarea,
+.wlt select {
+  font-family: inherit;
+}
+
+.wlt ::selection {
+  background: var(--accent-soft);
+}
+
+/* ----------------------------------------------------------------------------
+   Shell / layout
+---------------------------------------------------------------------------- */
+.wlt .shell {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  /* Fixed popup geometry — overrides the prototype's 100%/100%. */
+  width: 410px;
+  max-width: 410px;
+  min-height: 600px;
+  overflow: hidden;
+  background: var(--bg);
+  isolation: isolate;
+}
+.wlt .shell::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background: var(--glow);
+  pointer-events: none;
+}
+.wlt .shell::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.28;
+  mix-blend-mode: soft-light;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+/* Content sits above the glow/noise so neither can ever intercept a click. */
+.wlt .shell > * {
+  position: relative;
+  z-index: 1;
+}
+
+.wlt .shell.compact {
+  min-height: 320px;
+}
+
+.wlt .shell-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap);
+  padding: 12px var(--pad) 16px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: thin;
+}
+.wlt .shell-body::-webkit-scrollbar {
+  width: 8px;
+}
+.wlt .shell-body::-webkit-scrollbar-thumb {
+  border: 2px solid transparent;
+  border-radius: 999px;
+  background-clip: padding-box;
+  background-color: var(--border-strong);
+}
+
+/* Onboarding / unlock screens have no bottom nav. */
+.wlt .auth-body,
+.wlt .auth-screen {
+  justify-content: flex-start;
+  padding-top: 18px;
+  gap: var(--gap);
+}
+.wlt .unlock-screen {
+  justify-content: flex-start;
+}
+
+.wlt .stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap);
+}
+.wlt .stack-sm {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+.wlt .center {
+  align-items: center;
+  text-align: center;
+}
+.wlt .grow {
+  flex: 1;
+}
+.wlt .spread {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.wlt .row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Layout wrapper used only by the rail nav variant. */
+.wlt .layout {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+}
+.wlt .main-col {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+}
+
+/* ----------------------------------------------------------------------------
+   Approval shell (focused dApp-approval screen)
+---------------------------------------------------------------------------- */
+.wlt .approval-shell {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap);
+  width: 410px;
+  max-width: 410px;
+  min-height: 600px;
+  overflow: hidden;
+  padding: 14px var(--pad) 18px;
+  background: var(--bg);
+  isolation: isolate;
+}
+.wlt .approval-shell::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background: var(--glow);
+  pointer-events: none;
+}
+.wlt .approval-shell > * {
+  position: relative;
+  z-index: 1;
+}
+.wlt .approval-shell-top {
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border);
+}
+
+/* `.approval-active` is a JS/state hook (no required styling); a soft warn glow
+   reinforces "review carefully" without affecting layout or click targets. */
+.wlt .shell.approval-active::before {
+  background:
+    radial-gradient(circle at 8% -4%, var(--warn-soft), transparent 32%),
+    var(--glow);
+}
+
+/* ----------------------------------------------------------------------------
+   Topbar / header
+---------------------------------------------------------------------------- */
+.wlt .topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 12px var(--pad);
+  border-bottom: 1px solid var(--border);
+  background: color-mix(in oklab, var(--bg) 86%, transparent);
+  backdrop-filter: blur(10px);
+}
+.wlt .brand-lockup,
+.wlt .app-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+.wlt .brand-lockup > span,
+.wlt .app-header > span {
+  min-width: 0;
+}
+.wlt .brand-mark {
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: 34px;
+  height: 34px;
+  border-radius: var(--radius-md);
+  background: var(--mark-fill, var(--accent));
+  color: var(--mark-ink, var(--accent-ink));
+  font-family: var(--font-head);
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1;
+  box-shadow: var(--shadow-soft);
+}
+.wlt .brand-name {
+  font-family: var(--font-head);
+  font-weight: 700;
+  font-size: 15px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.wlt .brand-sub {
+  color: var(--muted);
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.wlt .app-header h1 {
+  margin: 0;
+  font-family: var(--font-head);
+  font-size: 19px;
+  line-height: 1.2;
+  color: var(--ink);
+}
+.wlt .app-header p {
+  margin: 3px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.wlt .wallet-pill {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-width: 0;
+  max-width: 250px;
+  min-height: var(--tap);
+  padding: 5px 11px 5px 5px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  background: var(--surface);
+  color: var(--ink);
+  cursor: pointer;
+  transition: border-color var(--transition), background var(--transition);
+}
+.wlt .wallet-pill:hover {
+  border-color: var(--border-strong);
+  background: var(--surface-soft);
+}
+.wlt .wallet-pill-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  text-align: left;
+  line-height: 1.2;
+}
+.wlt .wallet-pill-text strong {
+  font-size: 13.5px;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.wlt .wallet-pill-text span,
+.wlt .wallet-pill-text .muted {
+  margin: 1px 0 0;
+  font-size: 10.5px;
+  color: var(--muted);
+}
+.wlt .wallet-pill-caret {
+  flex: 0 0 auto;
+  color: var(--muted);
+}
+.wlt .actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* ----------------------------------------------------------------------------
+   Type
+---------------------------------------------------------------------------- */
+.wlt h1 {
+  font-family: var(--font-head);
+  font-weight: 700;
+  font-size: 22px;
+  line-height: 1.15;
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+.wlt h2 {
+  font-family: var(--font-head);
+  font-weight: 600;
+  font-size: 17px;
+  line-height: 1.2;
+  margin: 0;
+  color: var(--ink);
+}
+.wlt h3 {
+  font-family: var(--font-head);
+  font-weight: 600;
+  font-size: 14px;
+  margin: 0;
+}
+.wlt p {
+  margin: 0;
+}
+.wlt .muted {
+  color: var(--muted);
+  font-size: 12px;
+}
+.wlt .faint {
+  color: var(--faint);
+  font-size: 11px;
+}
+.wlt .mono {
+  font-family: var(--font-mono);
+}
+.wlt .num {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
+.wlt .eyebrow {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.wlt .section-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 2px;
+}
+.wlt .section-title h2,
+.wlt .section-title h3 {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+/* ----------------------------------------------------------------------------
+   Buttons
+---------------------------------------------------------------------------- */
+.wlt button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: var(--control-h);
+  border: 0;
+  border-radius: var(--radius-field);
+  padding: 0 16px;
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background var(--transition), transform 0.08s, box-shadow var(--transition), border-color var(--transition), opacity var(--transition);
+}
+.wlt button:not(:disabled):hover {
+  background: var(--accent-strong);
+}
+.wlt button:not(:disabled):active {
+  transform: translateY(1px);
+}
+.wlt button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.wlt button:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--accent-ring);
+}
+.wlt .btn-block {
+  width: 100%;
+}
+.wlt .secondary {
+  background: var(--surface-strong);
+  color: var(--ink);
+  border: 1px solid var(--border);
+}
+.wlt .secondary:not(:disabled):hover {
+  background: var(--surface-soft);
+  border-color: var(--border-strong);
+}
+.wlt .ghost {
+  background: transparent;
+  color: var(--muted);
+}
+.wlt .ghost:not(:disabled):hover {
+  background: var(--surface);
+  color: var(--ink);
+}
+.wlt .list-toggle {
+  width: 100%;
+  padding: 9px;
+  margin-top: 2px;
+  background: transparent;
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--muted);
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+  transition: var(--transition);
+}
+.wlt .list-toggle:not(:disabled):hover {
+  color: var(--ink);
+  border-color: var(--border-strong);
+}
+.wlt .danger-button {
+  background: var(--danger);
+  color: #fff;
+}
+.wlt .danger-button:not(:disabled):hover {
+  filter: brightness(1.08);
+}
+.wlt .icon {
+  width: var(--control-h);
+  min-width: var(--control-h);
+  height: var(--control-h);
+  min-height: var(--control-h);
+  padding: 0;
+  border-radius: var(--radius-field);
+  background: var(--surface);
+  color: var(--muted);
+  border: 1px solid var(--border);
+}
+.wlt .icon.sm {
+  width: 34px;
+  min-width: 34px;
+  height: 34px;
+  min-height: 34px;
+}
+.wlt .icon:not(:disabled):hover {
+  color: var(--ink);
+  background: var(--surface-soft);
+  border-color: var(--border-strong);
+}
+.wlt .icon.danger:not(:disabled):hover {
+  color: var(--danger);
+  border-color: var(--danger);
+  background: var(--danger-soft);
+}
+.wlt [data-icons="solid"] svg {
+  stroke-width: 2.6;
+}
+.wlt[data-icons="solid"] svg {
+  stroke-width: 2.6;
+}
+
+/* Segmented control */
+.wlt .segmented {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  gap: 3px;
+  padding: 4px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--bg-elevated);
+}
+.wlt .segmented button {
+  min-height: 32px;
+  padding: 0 8px;
+  font-size: 13px;
+  font-weight: 600;
+  background: transparent;
+  color: var(--muted);
+  border-radius: calc(var(--radius-md) - 4px);
+}
+.wlt .segmented button:not(:disabled):hover {
+  background: transparent;
+  color: var(--ink);
+}
+.wlt .segmented button.active {
+  background: var(--surface-strong);
+  color: var(--ink);
+  box-shadow: var(--shadow-soft);
+}
+
+/* ----------------------------------------------------------------------------
+   Forms
+---------------------------------------------------------------------------- */
+.wlt label {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink);
+}
+.wlt label.field {
+  gap: 7px;
+}
+.wlt input,
+.wlt textarea,
+.wlt select {
+  width: 100%;
+  font-family: var(--font-body);
+  font-size: 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-field);
+  padding: 0 13px;
+  min-height: var(--control-h);
+  background: var(--surface);
+  color: var(--ink);
+  transition: border-color var(--transition), box-shadow var(--transition);
+}
+.wlt textarea {
+  padding: 11px 13px;
+  min-height: 0;
+  resize: vertical;
+  line-height: 1.5;
+}
+.wlt select {
+  appearance: none;
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--muted) 50%),
+    linear-gradient(135deg, var(--muted) 50%, transparent 50%);
+  background-position: calc(100% - 18px) 50%, calc(100% - 13px) 50%;
+  background-size: 5px 5px, 5px 5px;
+  background-repeat: no-repeat;
+  padding-right: 32px;
+}
+.wlt input::placeholder,
+.wlt textarea::placeholder {
+  color: var(--faint);
+}
+.wlt input:focus,
+.wlt textarea:focus,
+.wlt select:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-ring);
+}
+.wlt .masked {
+  -webkit-text-security: disc;
+}
+.wlt .input-wrap,
+.wlt .textarea-wrap {
+  position: relative;
+}
+.wlt .input-wrap .icon,
+.wlt .textarea-wrap .icon {
+  position: absolute;
+  right: 5px;
+  top: 5px;
+  width: 32px;
+  min-width: 32px;
+  height: 32px;
+  min-height: 32px;
+}
+/* Send recipient: input + scan button side-by-side. */
+.wlt .input-action {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px;
+}
+.wlt .input-action .icon {
+  position: static;
+}
+
+/* ----------------------------------------------------------------------------
+   Avatar / identity
+---------------------------------------------------------------------------- */
+.wlt .avatar {
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  color: #fff;
+  font-weight: 800;
+  font-size: 12px;
+  text-shadow: 0 1px 2px rgb(0 0 0 / 35%);
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 14%);
+}
+.wlt .net-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex: 0 0 auto;
+}
+.wlt .coin {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  font-family: var(--font-head);
+  font-size: 12px;
+  font-weight: 700;
+  flex: 0 0 auto;
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 6%);
+}
+
+/* ----------------------------------------------------------------------------
+   Bottom navigation
+---------------------------------------------------------------------------- */
+.wlt .nav,
+.wlt .bottom-nav {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 2px;
+  padding: 8px 10px;
+  border-top: 1px solid var(--border);
+  background: color-mix(in oklab, var(--bg-elevated) 92%, transparent);
+  backdrop-filter: blur(12px);
+}
+.wlt .nav-item,
+.wlt .bottom-nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  min-height: 50px;
+  padding: 6px 2px;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 600;
+  transition: color var(--transition), background var(--transition);
+}
+.wlt .nav-item:not(:disabled):hover,
+.wlt .bottom-nav-item:not(:disabled):hover {
+  background: var(--surface);
+  color: var(--ink);
+}
+.wlt .nav-item.active,
+.wlt .bottom-nav-item.active {
+  color: var(--accent);
+  background: var(--accent-soft);
+}
+.wlt .nav-ico,
+.wlt .bottom-nav-icon {
+  position: relative;
+  display: grid;
+  place-items: center;
+}
+.wlt .nav-badge,
+.wlt .bottom-nav-badge {
+  position: absolute;
+  top: -6px;
+  right: -10px;
+  display: grid;
+  place-items: center;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  border-radius: 999px;
+  background: var(--danger);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 800;
+}
+
+/* nav variant: floating pill */
+.wlt[data-nav="pill"] .nav,
+.wlt[data-nav="pill"] .bottom-nav {
+  position: absolute;
+  left: 50%;
+  bottom: 12px;
+  transform: translateX(-50%);
+  width: calc(100% - 28px);
+  gap: 4px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-pill);
+  box-shadow: var(--shadow);
+  padding: 6px;
+}
+.wlt[data-nav="pill"] .nav-item,
+.wlt[data-nav="pill"] .bottom-nav-item {
+  border-radius: var(--radius-pill);
+  min-height: 44px;
+}
+.wlt[data-nav="pill"] .shell-body {
+  padding-bottom: 76px;
+}
+
+/* nav variant: left rail — restructure the shell into [rail | content] columns
+   so the nav is a full-height left sidebar (not a strip stranded at the bottom). */
+.wlt[data-nav="rail"] .shell {
+  display: grid;
+  grid-template-columns: 64px minmax(0, 1fr);
+  grid-template-rows: auto auto 1fr;
+}
+.wlt[data-nav="rail"] .topbar {
+  grid-column: 2;
+  grid-row: 1;
+}
+.wlt[data-nav="rail"] .error {
+  grid-column: 2;
+  grid-row: 2;
+}
+.wlt[data-nav="rail"] .shell-body {
+  grid-column: 2;
+  grid-row: 3;
+}
+.wlt[data-nav="rail"] .nav,
+.wlt[data-nav="rail"] .bottom-nav {
+  grid-column: 1;
+  grid-row: 1 / -1;
+  grid-template-columns: none;
+  grid-auto-rows: max-content;
+  align-content: start;
+  gap: 4px;
+  width: 64px;
+  border-top: 0;
+  border-right: 1px solid var(--border);
+  padding: 12px 8px;
+}
+.wlt[data-nav="rail"] .nav-item,
+.wlt[data-nav="rail"] .bottom-nav-item {
+  font-size: 9.5px;
+  min-height: 52px;
+}
+
+/* ----------------------------------------------------------------------------
+   Sub-views (Send / Receive)
+---------------------------------------------------------------------------- */
+.wlt .subbar,
+.wlt .subview-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.wlt .subbar h2,
+.wlt .subview-bar h2 {
+  font-size: 16px;
+}
+
+/* ----------------------------------------------------------------------------
+   Balance hero / quick actions (Tokens screen)
+---------------------------------------------------------------------------- */
+.wlt .hero,
+.wlt .tokens-hero {
+  display: grid;
+  gap: 12px;
+  padding: var(--pad);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background:
+    linear-gradient(157deg, var(--accent-soft), transparent 58%),
+    linear-gradient(0deg, var(--surface), var(--surface-soft));
+  box-shadow: var(--shadow-soft), var(--hairline);
+}
+.wlt .tokens-hero-account {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+.wlt .tokens-hero-id {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+.wlt .tokens-hero-id strong {
+  font-size: 14px;
+}
+.wlt .tokens-hero-address,
+.wlt .addr-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  align-self: flex-start;
+  min-height: 0;
+  padding: 0;
+  color: var(--muted);
+  background: transparent;
+  border: 0;
+  font-weight: 600;
+  font-size: 11.5px;
+  cursor: pointer;
+}
+.wlt .tokens-hero-address:hover,
+.wlt .addr-chip:hover {
+  color: var(--accent);
+  background: transparent;
+}
+.wlt .tokens-hero-address code {
+  font-size: 12px;
+}
+.wlt .tokens-hero-total {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  margin: 0;
+}
+.wlt .tokens-hero-count,
+.wlt .hero-amount {
+  font-family: var(--font-head);
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1;
+  color: var(--ink);
+}
+.wlt .tokens-hero-copied {
+  font-size: 11px;
+  color: var(--accent);
+}
+
+.wlt .quick,
+.wlt .token-actions {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+.wlt .quick-btn,
+.wlt .token-action {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 7px;
+  min-height: 72px;
+  padding: 12px 4px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  color: var(--ink);
+  font-size: 11.5px;
+  font-weight: 600;
+  box-shadow: var(--hairline);
+}
+.wlt .quick-btn:not(:disabled):hover,
+.wlt .token-action:not(:disabled):hover {
+  background: var(--surface-soft);
+  border-color: var(--border-strong);
+}
+.wlt .quick-ico,
+.wlt .token-action-icon {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  color: var(--accent);
+  background: var(--accent-soft);
+}
+
+/* ----------------------------------------------------------------------------
+   Cards / rows
+---------------------------------------------------------------------------- */
+.wlt .card {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  padding: var(--pad);
+  box-shadow: var(--hairline);
+}
+.wlt .row-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: var(--row-pad);
+  background: var(--surface);
+  color: var(--ink);
+  box-shadow: var(--hairline);
+  transition: border-color var(--transition), background var(--transition);
+}
+.wlt .row-card.tap {
+  cursor: pointer;
+}
+.wlt .row-card:hover,
+.wlt .row-card.tap:hover {
+  border-color: var(--border-strong);
+  background: var(--surface-soft);
+}
+.wlt .row-lead {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  min-width: 0;
+}
+.wlt .row-id {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+.wlt .row-id strong {
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.wlt .row-amt {
+  text-align: right;
+  white-space: nowrap;
+}
+.wlt .row-amt strong {
+  font-size: 14px;
+  font-weight: 700;
+}
+.wlt .row-card code {
+  font-size: 12px;
+  color: var(--muted);
+  font-family: var(--font-mono);
+}
+.wlt .row-card p {
+  margin: 3px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+.wlt .row-card strong {
+  font-size: 13px;
+}
+
+/* Accounts list (no prototype equivalent — restyled with row-card tokens). */
+.wlt .account-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+}
+/* Collapsed: kept in the DOM (addresses stay queryable) but visually hidden. */
+.wlt .account-grid[hidden] {
+  display: none;
+}
+.wlt .account-row-lead {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-width: 0;
+}
+.wlt .account-grid code {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--muted);
+}
+
+/* Grouped multi-chain asset rows */
+.wlt .asset-group {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  overflow: hidden;
+  transition: border-color var(--transition);
+}
+.wlt .asset-group.open {
+  border-color: var(--border-strong);
+}
+.wlt .asset-head,
+.wlt .asset-group-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  padding: var(--row-pad);
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--ink);
+  text-align: left;
+  cursor: pointer;
+}
+.wlt .asset-group-row:disabled {
+  cursor: default;
+  opacity: 1;
+}
+.wlt .asset-head:not(:disabled):hover,
+.wlt .asset-group-row:not(:disabled):hover {
+  background: var(--surface-soft);
+}
+.wlt .asset-group-lead {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  min-width: 0;
+}
+.wlt .asset-group-id {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+.wlt .asset-group-id strong {
+  font-size: 14px;
+}
+.wlt .asset-group-chains {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--muted);
+}
+.wlt .asset-group-amount {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+.wlt .asset-group-amount strong {
+  font-size: 14px;
+}
+.wlt .asset-group-amount svg {
+  color: var(--muted);
+}
+.wlt .asset-break,
+.wlt .asset-group-breakdown {
+  display: flex;
+  flex-direction: column;
+  border-top: 1px solid var(--border);
+  background: var(--bg-elevated);
+}
+.wlt .break-row,
+.wlt .asset-breakdown-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 9px 14px 9px 22px;
+  font-size: 12px;
+  color: var(--muted);
+}
+.wlt .break-row + .break-row,
+.wlt .asset-breakdown-row + .asset-breakdown-row {
+  border-top: 1px solid var(--border);
+}
+
+/* ----------------------------------------------------------------------------
+   Empty states / banners
+---------------------------------------------------------------------------- */
+.wlt .empty,
+.wlt .empty-state {
+  display: grid;
+  place-items: center;
+  gap: 6px;
+  padding: 26px 14px;
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--radius);
+  background: var(--bg-elevated);
+  text-align: center;
+}
+.wlt .empty-state p {
+  margin: 0;
+}
+.wlt .banner {
+  display: flex;
+  gap: 9px;
+  padding: 11px 13px;
+  border-radius: var(--radius-md);
+  font-size: 12.5px;
+  line-height: 1.45;
+}
+.wlt .banner svg {
+  flex: 0 0 auto;
+  margin-top: 1px;
+}
+.wlt .banner.warn {
+  background: var(--warn-soft);
+  color: var(--warn);
+  border: 1px solid color-mix(in oklab, var(--warn) 30%, transparent);
+}
+.wlt .banner.danger {
+  background: var(--danger-soft);
+  color: var(--danger);
+  border: 1px solid color-mix(in oklab, var(--danger) 30%, transparent);
+}
+.wlt .banner.info {
+  background: var(--info-soft);
+  color: var(--info);
+  border: 1px solid color-mix(in oklab, var(--info) 30%, transparent);
+}
+.wlt .banner.good {
+  background: var(--good-soft);
+  color: var(--good);
+  border: 1px solid color-mix(in oklab, var(--good) 30%, transparent);
+}
+.wlt .banner strong {
+  font-weight: 700;
+}
+
+/* ----------------------------------------------------------------------------
+   Pills / chips / status
+---------------------------------------------------------------------------- */
+.wlt .chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+  background: var(--surface-soft);
+  border: 1px solid var(--border);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--muted);
+}
+.wlt .status {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  font-weight: 700;
+}
+.wlt .status.ok {
+  color: var(--good);
+}
+.wlt .status.pending {
+  color: var(--warn);
+}
+.wlt .status.fail {
+  color: var(--danger);
+}
+
+/* ----------------------------------------------------------------------------
+   Status messages (legacy error/warning banners)
+---------------------------------------------------------------------------- */
+.wlt .error {
+  margin: 0;
+  border: 1px solid color-mix(in oklab, var(--danger) 35%, transparent);
+  border-left-width: 3px;
+  border-radius: var(--radius-sm);
+  padding: 9px 11px;
+  color: var(--danger);
+  background: var(--danger-soft);
+  font-size: 12px;
+  font-weight: 600;
+}
+.wlt .warning {
+  margin: 0;
+  border: 1px solid color-mix(in oklab, var(--warn) 30%, transparent);
+  border-left-width: 3px;
+  border-radius: var(--radius-sm);
+  padding: 9px 11px;
+  color: var(--warn);
+  background: var(--warn-soft);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.45;
+}
+
+/* ----------------------------------------------------------------------------
+   Filters (Activity)
+---------------------------------------------------------------------------- */
+.wlt .filters {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+/* ----------------------------------------------------------------------------
+   Receive
+---------------------------------------------------------------------------- */
+.wlt .qr {
+  width: 168px;
+  height: 168px;
+  padding: 12px;
+  border-radius: var(--radius-md);
+  background: #fff;
+  border: 1px solid var(--border);
+}
+.wlt .address {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  padding: 11px 13px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--bg-elevated);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--ink);
+}
+
+/* Standalone camera-scanner window (popup.html#scan). */
+.wlt .scan-window {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  min-height: 100vh;
+  padding: 16px;
+  background: var(--bg);
+}
+.wlt .scan-video {
+  width: 100%;
+  flex: 1;
+  min-height: 0;
+  border-radius: var(--radius);
+  background: #000;
+  object-fit: cover;
+}
+
+/* ----------------------------------------------------------------------------
+   Sites
+---------------------------------------------------------------------------- */
+.wlt .site-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: var(--row-pad);
+  background: var(--surface);
+  box-shadow: var(--hairline);
+}
+.wlt .site-card strong,
+.wlt .site-card p {
+  overflow-wrap: anywhere;
+}
+.wlt .site-card strong {
+  font-size: 13px;
+}
+.wlt .site-card p {
+  margin: 3px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+/* ----------------------------------------------------------------------------
+   Sheet (wallet switcher / dialogs)
+---------------------------------------------------------------------------- */
+.wlt .sheet-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  background: var(--scrim);
+  backdrop-filter: blur(3px);
+  animation: wlt-overlay-in var(--transition);
+}
+.wlt .sheet {
+  width: 100%;
+  max-width: 410px;
+  max-height: 88vh;
+  overflow-y: auto;
+  padding: 10px var(--pad) 18px;
+  border-top: 1px solid var(--border-strong);
+  border-radius: var(--radius) var(--radius) 0 0;
+  background: var(--bg-elevated);
+  box-shadow: var(--shadow);
+  animation: wlt-rise 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.wlt .sheet-grip,
+.wlt .sheet-handle {
+  width: 38px;
+  height: 4px;
+  margin: 0 auto 12px;
+  border-radius: 999px;
+  background: var(--border-strong);
+}
+.wlt .sheet-head,
+.wlt .sheet-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.wlt .sheet-head h2,
+.wlt .sheet-header h2 {
+  font-size: 16px;
+}
+.wlt .sheet-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap);
+}
+@keyframes wlt-rise {
+  from { transform: translateY(26px); }
+  to { transform: translateY(0); }
+}
+@keyframes wlt-overlay-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.wlt .wallet-switch-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.wlt .wallet-switch-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: center;
+}
+.wlt .wallet-switch-main {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  min-width: 0;
+  min-height: 56px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  color: var(--ink);
+  background: var(--surface);
+  text-align: left;
+  box-shadow: var(--hairline);
+}
+.wlt .wallet-switch-main:not(:disabled):hover {
+  background: var(--surface-soft);
+  border-color: var(--border-strong);
+}
+.wlt .wallet-switch-row.active .wallet-switch-main {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+.wlt .wallet-switch-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  line-height: 1.25;
+}
+.wlt .wallet-switch-text strong {
+  overflow: hidden;
+  font-size: 14px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.wlt .wallet-switch-text .muted {
+  font-size: 11px;
+}
+.wlt .wallet-switch-check {
+  flex: 0 0 auto;
+  margin-left: auto;
+  color: var(--accent);
+}
+.wlt .add-wallet-button {
+  margin-top: 2px;
+}
+
+/* ----------------------------------------------------------------------------
+   Inline panels / reviews
+---------------------------------------------------------------------------- */
+.wlt .inline-panel,
+.wlt .review-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius);
+  padding: var(--pad);
+  background: var(--surface);
+  box-shadow: var(--shadow-soft), var(--hairline);
+}
+.wlt .review-panel dl {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  margin: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+.wlt .review-panel dl div {
+  display: grid;
+  grid-template-columns: 92px minmax(0, 1fr);
+  gap: 10px;
+  padding: 9px 12px;
+  font-size: 12px;
+}
+.wlt .review-panel dl div + div {
+  border-top: 1px solid var(--border);
+}
+.wlt .review-panel dt {
+  color: var(--muted);
+  font-weight: 600;
+}
+.wlt .review-panel dd {
+  margin: 0;
+  text-align: right;
+  overflow-wrap: anywhere;
+  color: var(--ink);
+  font-weight: 600;
+}
+.wlt .split-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.wlt .check-row {
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.wlt .check-row input,
+.wlt .account-check-row input {
+  width: 18px;
+  min-width: 18px;
+  height: 18px;
+  min-height: 18px;
+  accent-color: var(--accent);
+}
+.wlt .seed-preview {
+  line-height: 1.6;
+}
+.wlt .message-preview {
+  display: block;
+  max-height: 72px;
+  overflow: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 11px 13px;
+  color: var(--ink);
+  background: var(--bg-elevated);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+
+/* ----------------------------------------------------------------------------
+   Approval cards (dApp)
+---------------------------------------------------------------------------- */
+.wlt .approval-hero {
+  display: grid;
+  gap: 6px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius);
+  padding: var(--pad);
+  background:
+    linear-gradient(150deg, var(--accent-soft), transparent 65%),
+    var(--surface);
+  box-shadow: var(--shadow-soft), var(--hairline);
+}
+.wlt .approval-hero h2 {
+  margin: 0;
+  font-size: 17px;
+  line-height: 1.2;
+}
+.wlt .approval-hero p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.45;
+}
+.wlt .approval-workflow {
+  gap: 12px;
+}
+
+.wlt .approval-card,
+.wlt .approval {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius);
+  padding: var(--pad);
+  background: var(--surface);
+  box-shadow: var(--shadow-soft), var(--hairline);
+}
+.wlt .approval-card-header,
+.wlt .approval-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.wlt .approval-kind {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+.wlt .origin-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 60%;
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  font-size: 11px;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.wlt .approval-origin {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 12px;
+  border-radius: var(--radius-md);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+}
+.wlt .approval-title {
+  margin: 0;
+  color: var(--ink);
+  font-family: var(--font-head);
+  font-size: 19px;
+  line-height: 1.2;
+}
+.wlt .approval-subtitle {
+  overflow-wrap: anywhere;
+}
+.wlt .connection-request-body,
+.wlt .signature-request-body {
+  display: grid;
+  gap: 9px;
+  min-width: 0;
+}
+.wlt .permission-list {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 11px 11px 11px 28px;
+  color: var(--muted);
+  background: var(--bg-elevated);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+/* Multi-account checklist */
+.wlt .account-checklist {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.wlt .account-checklist legend {
+  padding: 0;
+  margin-bottom: 2px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 600;
+}
+.wlt .account-check-row {
+  display: grid;
+  grid-template-columns: auto auto minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  padding: var(--row-pad);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  box-shadow: var(--hairline);
+  cursor: pointer;
+  transition: border-color var(--transition), background var(--transition);
+}
+.wlt .account-check-row:hover {
+  border-color: var(--border-strong);
+  background: var(--surface-soft);
+}
+.wlt .account-check-row.checked {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+.wlt .account-check-avatar {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  color: var(--accent);
+  background: var(--bg-elevated);
+  font-size: 12px;
+  font-weight: 800;
+}
+.wlt .account-check-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.wlt .account-check-text strong {
+  font-size: 13px;
+}
+.wlt .account-check-text code {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--muted);
+}
+.wlt .approval-action-row,
+.wlt .approval-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  padding-top: 2px;
+}
+
+/* Signature / transaction card specifics */
+.wlt .signature-request-card {
+  align-items: stretch;
+}
+.wlt .signature-origin-banner {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--ink);
+}
+.wlt .signature-phishing-warning {
+  margin: 0;
+  padding: 9px 11px;
+  border-radius: var(--radius-md);
+  border: 1px solid color-mix(in oklab, var(--danger) 30%, transparent);
+  background: var(--danger-soft);
+  color: var(--danger);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+.wlt .signature-request-meta {
+  margin: 0;
+}
+.wlt .signature-message-header {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+.wlt .signature-encoding-badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  border-radius: var(--radius-pill);
+  padding: 2px 10px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--info);
+  background: var(--info-soft);
+}
+.wlt .signature-byte-count {
+  font-size: 11px;
+}
+.wlt .signature-typed-domain {
+  margin: 0;
+  font-size: 12px;
+  color: var(--ink);
+  overflow-wrap: anywhere;
+}
+.wlt .signature-hex-notice,
+.wlt .signature-eip712-notice {
+  margin: 0;
+  padding: 9px 11px;
+  border-radius: var(--radius-md);
+  border: 1px solid color-mix(in oklab, var(--warn) 30%, transparent);
+  background: var(--warn-soft);
+  color: var(--warn);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.45;
+}
+.wlt .signature-scroll-hint {
+  margin: 0;
+  font-size: 11px;
+}
+.wlt .signature-message-preview {
+  margin: 0;
+  max-height: min(240px, 40vh);
+}
+
+/* dApp transaction decoded list (maps to prototype .dl). */
+.wlt .send-confirm-list,
+.wlt .dl {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  min-width: 0;
+  max-width: 100%;
+  margin: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+.wlt .send-confirm-list > div,
+.wlt .dl-row {
+  display: grid;
+  grid-template-columns: minmax(92px, 0.4fr) minmax(0, 1fr);
+  gap: 10px;
+  padding: 9px 12px;
+  min-width: 0;
+  font-size: 12px;
+}
+.wlt .send-confirm-list > div + div,
+.wlt .dl-row + .dl-row {
+  border-top: 1px solid var(--border);
+}
+.wlt .send-confirm-list dt,
+.wlt .dl-row dt {
+  min-width: 0;
+  color: var(--muted);
+  font-weight: 600;
+  line-height: 1.35;
+}
+.wlt .send-confirm-list dd,
+.wlt .dl-row dd {
+  min-width: 0;
+  margin: 0;
+  text-align: right;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  color: var(--ink);
+  font-weight: 600;
+  line-height: 1.35;
+}
+.wlt .dl-row dd.mono {
+  font-family: var(--font-mono);
+  font-weight: 500;
+  font-size: 11.5px;
+}
+
+/* ----------------------------------------------------------------------------
+   Seed grid / password strength (onboarding)
+---------------------------------------------------------------------------- */
+.wlt .seed-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 7px;
+  padding: var(--pad);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--bg-elevated);
+}
+.wlt .seed-word {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  padding: 8px 9px;
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+}
+.wlt .seed-word i {
+  color: var(--faint);
+  font-style: normal;
+  font-size: 10px;
+  min-width: 14px;
+}
+.wlt .seed-blur {
+  filter: blur(7px);
+  transition: filter 0.2s;
+}
+
+.wlt .password-hint {
+  margin: 4px 0 0;
+  font-size: 12px;
+}
+.wlt .password-strength,
+.wlt .strength {
+  display: grid;
+  gap: 6px;
+}
+.wlt .password-strength-bar,
+.wlt .strength {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 4px;
+}
+.wlt .password-strength-bar span,
+.wlt .strength span {
+  height: 4px;
+  border-radius: 999px;
+  background: var(--surface-strong);
+}
+.wlt .strength span.on {
+  background: var(--good);
+}
+.wlt .strength span.on.weak {
+  background: var(--danger);
+}
+.wlt .strength span.on.mid {
+  background: var(--warn);
+}
+.wlt .password-strength-bar span.active.score-0,
+.wlt .password-strength-bar span.active.score-1 {
+  background: var(--danger);
+}
+.wlt .password-strength-bar span.active.score-2 {
+  background: var(--warn);
+}
+.wlt .password-strength-bar span.active.score-3 {
+  background: var(--good);
+}
+.wlt .password-strength-bar span.active.score-4 {
+  background: var(--accent);
+}
+
+/* ----------------------------------------------------------------------------
+   Verification details (WYSIWYS — security surface beyond the prototype)
+---------------------------------------------------------------------------- */
+.wlt .verification-evidence {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+  border-top: 1px solid var(--border);
+  padding-top: 11px;
+}
+.wlt .verification-evidence-header {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  justify-content: space-between;
+}
+.wlt .verification-evidence h3 {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.2;
+  color: var(--ink);
+}
+.wlt .verification-badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 22px;
+  border-radius: var(--radius-pill);
+  padding: 2px 9px;
+  font-size: 10px;
+  font-weight: 700;
+}
+.wlt .verification-badge.verified {
+  color: var(--good);
+  background: var(--good-soft);
+}
+.wlt .verification-badge.unverified {
+  color: var(--danger);
+  background: var(--danger-soft);
+}
+.wlt .verification-note {
+  margin: 0;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1.35;
+}
+.wlt .verification-digest-list {
+  display: grid;
+  gap: 7px;
+  margin: 0;
+}
+.wlt .verification-digest-list > div {
+  display: grid;
+  grid-template-columns: minmax(86px, 0.38fr) minmax(0, 1fr);
+  gap: 8px;
+}
+.wlt .verification-digest-list dt {
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.3;
+}
+.wlt .verification-digest-list dd {
+  margin: 0;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  color: var(--ink);
+  font-size: 11px;
+  line-height: 1.35;
+}
+.wlt .verification-digest-value {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 28px;
+  gap: 6px;
+  align-items: start;
+}
+.wlt .verification-digest-value code {
+  font-family: var(--font-mono);
+}
+.wlt .verification-digest-value details {
+  grid-column: 1 / -1;
+  min-width: 0;
+}
+.wlt .verification-digest-value summary {
+  cursor: pointer;
+  color: var(--muted);
+  font-size: 10px;
+}
+.wlt .copy-digest-button {
+  display: inline-grid;
+  place-items: center;
+  width: 28px;
+  min-width: 28px;
+  height: 28px;
+  min-height: 28px;
+  padding: 0;
+  border-radius: var(--radius-sm);
+}
+.wlt .copy-digest-status {
+  grid-column: 1 / -1;
+  color: var(--accent);
+  font-size: 10px;
+}
+
+/* ----------------------------------------------------------------------------
+   Screen transitions (transform-only so content is never hidden)
+---------------------------------------------------------------------------- */
+.wlt .screen-enter {
+  animation: wlt-screen 0.26s cubic-bezier(0.22, 1, 0.36, 1);
+}
+@keyframes wlt-screen {
+  from { transform: translateY(7px); }
+  to { transform: translateY(0); }
+}

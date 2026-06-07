@@ -1,0 +1,70 @@
+name: Deploy showcase to GitHub Pages
+
+# Publishes the standalone white-label showcase in website/ to GitHub Pages.
+# This workflow is fully independent of the extension CI (`verify:ci`):
+# it never installs deps, runs the wxt build, or touches the extension package,
+# so it cannot affect or be gated by extension CI. It only uploads website/.
+# If GitHub Pages is not enabled for the repository yet, the job exits cleanly
+# with a notice. Enable Pages with GitHub Actions in repository settings, then
+# rerun the workflow to deploy.
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - 'website/**'
+      - '.github/workflows/pages.yml'
+  workflow_dispatch:
+
+# Allow read of contents and write of the Pages deployment / OIDC token.
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Serialize Pages deployments; let an in-progress run finish.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Check Pages setup
+        id: pages
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          status="$(curl -sS -o /tmp/pages.json -w "%{http_code}" \
+            -H "Authorization: Bearer ${GH_TOKEN}" \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "https://api.github.com/repos/${GITHUB_REPOSITORY}/pages")"
+          if [ "${status}" = "200" ]; then
+            echo "enabled=true" >> "${GITHUB_OUTPUT}"
+          else
+            echo "enabled=false" >> "${GITHUB_OUTPUT}"
+            echo "::notice title=GitHub Pages is not enabled::Enable Pages with GitHub Actions in repository settings, then rerun this workflow to deploy website/."
+          fi
+
+      - name: Configure Pages
+        if: steps.pages.outputs.enabled == 'true'
+        uses: actions/configure-pages@v5
+
+      - name: Upload website/ as Pages artifact
+        if: steps.pages.outputs.enabled == 'true'
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: website
+
+      - name: Deploy to GitHub Pages
+        if: steps.pages.outputs.enabled == 'true'
+        id: deployment
+        uses: actions/deploy-pages@v4

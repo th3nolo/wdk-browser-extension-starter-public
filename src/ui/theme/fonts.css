@@ -1,0 +1,67 @@
+/* ============================================================================
+   WDK skin fonts — self-hosted, bundled via @fontsource (latin subset only).
+   ----------------------------------------------------------------------------
+   Each import pulls in a single @font-face for the latin subset at one weight.
+   Vite rewrites the woff2 urls to self-hosted assets, so these are 'self'
+   fetches under the MV3 popup CSP — no Google Fonts CDN, no font-src needed.
+
+   The @font-face family names ('Space Grotesk', 'JetBrains Mono', ...) exactly
+   match the --font-* stacks emitted by the theme engine, so no token rewrite is
+   required. Only the weights actually used across the ported skins are bundled.
+
+   Newsreader (ivory) and Helvetica Neue (swiss) are intentionally NOT bundled:
+   the former is unused by the font plan, the latter is a system family.
+   ========================================================================== */
+
+/* Space Grotesk — evolved (head + body). */
+@import "@fontsource/space-grotesk/latin-400.css";
+@import "@fontsource/space-grotesk/latin-500.css";
+@import "@fontsource/space-grotesk/latin-600.css";
+@import "@fontsource/space-grotesk/latin-700.css";
+
+/* JetBrains Mono — evolved/aurum mono, terminal everything. */
+@import "@fontsource/jetbrains-mono/latin-400.css";
+@import "@fontsource/jetbrains-mono/latin-500.css";
+@import "@fontsource/jetbrains-mono/latin-700.css";
+
+/* Hanken Grotesk — neutral-light/dark, aurum/nocturne/ivory body fallback. */
+@import "@fontsource/hanken-grotesk/latin-400.css";
+@import "@fontsource/hanken-grotesk/latin-500.css";
+@import "@fontsource/hanken-grotesk/latin-600.css";
+@import "@fontsource/hanken-grotesk/latin-700.css";
+@import "@fontsource/hanken-grotesk/latin-800.css";
+
+/* IBM Plex Mono — neutral-*, meridian, bloom, nocturne, arctic, ivory, swiss mono. */
+@import "@fontsource/ibm-plex-mono/latin-400.css";
+@import "@fontsource/ibm-plex-mono/latin-500.css";
+@import "@fontsource/ibm-plex-mono/latin-600.css";
+
+/* Manrope — meridian, arctic (head + body). */
+@import "@fontsource/manrope/latin-400.css";
+@import "@fontsource/manrope/latin-500.css";
+@import "@fontsource/manrope/latin-600.css";
+@import "@fontsource/manrope/latin-700.css";
+@import "@fontsource/manrope/latin-800.css";
+
+/* Spectral — aurum head (serif). */
+@import "@fontsource/spectral/latin-400.css";
+@import "@fontsource/spectral/latin-500.css";
+@import "@fontsource/spectral/latin-600.css";
+@import "@fontsource/spectral/latin-700.css";
+
+/* Chakra Petch — pulse (head + body). */
+@import "@fontsource/chakra-petch/latin-400.css";
+@import "@fontsource/chakra-petch/latin-500.css";
+@import "@fontsource/chakra-petch/latin-600.css";
+@import "@fontsource/chakra-petch/latin-700.css";
+
+/* Space Mono — pulse mono. */
+@import "@fontsource/space-mono/latin-400.css";
+@import "@fontsource/space-mono/latin-700.css";
+
+/* Sora — bloom, nocturne (head + body). */
+@import "@fontsource/sora/latin-400.css";
+@import "@fontsource/sora/latin-500.css";
+@import "@fontsource/sora/latin-600.css";
+@import "@fontsource/sora/latin-700.css";
+@import "@fontsource/sora/latin-800.css";

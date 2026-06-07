@@ -1,0 +1,27 @@
+{
+  "extends": "./.wxt/tsconfig.json",
+  "compilerOptions": {
+    "allowSyntheticDefaultImports": true,
+    "baseUrl": ".",
+    "jsx": "react-jsx",
+    "moduleResolution": "bundler",
+    "paths": {
+      "@/*": [
+        "./src/*"
+      ],
+      "sodium-universal": [
+        "./src/shims/sodium-universal.ts"
+      ]
+    },
+    "strict": true,
+    "module": "ESNext"
+  },
+  "include": [
+    ".wxt/wxt.d.ts",
+    "src",
+    "entrypoints",
+    "wxt.config.ts",
+    "vitest.config.ts",
+    "types"
+  ]
+}

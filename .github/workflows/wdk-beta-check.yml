@@ -1,0 +1,65 @@
+name: WDK beta bump
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  bump:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+
+      - name: Enable pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@11.0.9 --activate
+
+      - name: Setup pnpm cache
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Apply WDK beta bump when available
+        id: wdk
+        run: node scripts/check-wdk-beta.mjs --apply
+
+      - name: Verify dependency gates
+        if: steps.wdk.outputs.updated == 'true'
+        run: pnpm run verify:ci
+
+      - name: Create pull request
+        if: steps.wdk.outputs.updated == 'true'
+        uses: peter-evans/create-pull-request@v8
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          branch: deps/wdk-beta-${{ steps.wdk.outputs.version }}
+          delete-branch: true
+          commit-message: Bump WDK packages to ${{ steps.wdk.outputs.version }}
+          title: Bump WDK packages to ${{ steps.wdk.outputs.version }}
+          body: |
+            Automated WDK beta alignment.
+
+            - Bumps all direct `@tetherto/wdk*` packages and the nested `@tetherto/wdk-wallet` override together
+            - Refreshes `scripts/audit-smoke.mjs` and `docs/SECURITY.md` from `pnpm audit --prod`
+            - Passed `pnpm run verify:ci` before opening this PR
+
+            Weekly `@tetherto/*` updates are normally handled by Dependabot grouping.
+            Use this workflow when you want a one-shot aligned bump with allowlist refresh outside the Dependabot cadence.
+
+            Review the resolved lockfile diff and updated audit allowlist before merging.
+          labels: dependencies

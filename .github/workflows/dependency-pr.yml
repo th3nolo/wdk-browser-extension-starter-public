@@ -1,0 +1,54 @@
+name: Dependency PR gate
+
+on:
+  pull_request:
+    paths:
+      - package.json
+      - pnpm-lock.yaml
+      - pnpm-workspace.yaml
+      - .github/dependabot.yml
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+
+      - name: Enable pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@11.0.9 --activate
+
+      - name: Setup pnpm cache
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Fetch base branch
+        run: git fetch origin "${{ github.base_ref }}"
+
+      - name: Lockfile PR policy
+        env:
+          GITHUB_BASE_REF: ${{ github.base_ref }}
+        run: pnpm run smoke:lockfile -- --pr-policy
+
+      - name: Review resolved lockfile versions
+        env:
+          GITHUB_BASE_REF: ${{ github.base_ref }}
+        run: pnpm run review:lockfile -- --pr-review
+
+      - name: Run CI verifier
+        run: pnpm run verify:ci

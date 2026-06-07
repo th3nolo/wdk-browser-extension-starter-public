@@ -1,0 +1,26 @@
+# gitleaks configuration for wdk-browser-extension-starter.
+# Extends the default ruleset and allowlists verified-benign test/fixture/demo
+# material: test passwords, keccak hash vectors, the public "abandon … about"
+# BIP-39 test seed, and Chrome-binary SHA-256 checksums. Each was manually reviewed
+# (see CHANGELOG / docs/SECURITY.md). High-signal rules (real cloud tokens, PEM
+# keys) still apply everywhere.
+title = "wdk-browser-extension-starter"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Verified non-secret test/fixture/demo material"
+paths = [
+  '''.*\.test\.[tj]sx?$''',
+  '''.*/__tests__/.*''',
+  '''.*/__fixtures__/.*''',
+  '''scripts/.*smoke.*''',
+  '''scripts/create-.*\.mjs''',
+  '''scripts/chrome-for-testing-manifest\.json$''',
+  '''pnpm-lock\.yaml$''',
+]
+regexes = [
+  '''abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about''',
+  '''test test test test test test test test test test test junk''',
+]

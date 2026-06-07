@@ -1,0 +1,331 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>WDK Whitelabel Wallet — Overview</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;450;500;600;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="assets/wallet.css" />
+<style>
+/* ============================================================
+   WDK OVERVIEW — rebuilt
+   Brief: developer-tool serious, dark, must survive kill-accent.
+   Hierarchy lives in TYPE + ELEVATION SCALE + SPACING.
+   The accent does interactive/semantic work ONLY and is the
+   last 2% — toggle "kill accent" and the page still reads.
+   What was removed vs the original:
+     · the #2dd4bf + #818cf8 cyan/indigo gradient (the AI tell)
+     · gradient-clipped headline text
+     · glow radial backgrounds
+     · scattered radii (999/22/14/12/10/9) with no role logic
+============================================================ */
+:root{
+  /* neutral ramp — evenly stepped, real scale */
+  --n-0:#09090B;   /* page floor */
+  --n-1:#0E0E11;   /* elevation 0 */
+  --n-2:#141418;   /* elevation 1 — cards */
+  --n-3:#1C1C21;   /* elevation 2 — hover / raised */
+  --n-4:#26262D;
+  --line-1:#1F1F25; /* hairline */
+  --line-2:#2E2E37; /* structural */
+  --line-3:#41414C; /* focus-ready */
+
+  --t-hi:#F3F1EC;
+  --t-mid:#A29E96;
+  --t-lo:#67635C;
+  --t-dis:#403E3A;
+
+  /* SEMANTIC / INTERACTIVE ONLY. survives deletion. */
+  --acc:#5EEAD4;       /* one cool signal, restrained — links + arrows */
+  --acc-ink:#04211E;
+  --live:#4ADE80;      /* a single status dot */
+
+  /* elevation tokens — not per-component shadow recipes */
+  --e1:0 1px 0 rgba(255,255,255,.02),0 1px 2px rgba(0,0,0,.4);
+  --e2:0 1px 0 rgba(255,255,255,.03),0 10px 30px -14px rgba(0,0,0,.7);
+  --e3:0 1px 0 rgba(255,255,255,.04),0 24px 60px -28px rgba(0,0,0,.9);
+
+  /* radius BY ROLE — three values, applied consistently */
+  --r-pill:999px;   /* pills / dots */
+  --r-ctl:8px;      /* controls, chips */
+  --r-card:6px;     /* surfaces — kept tight, spec-sheet not bubbly */
+
+  --sans:'IBM Plex Sans',ui-sans-serif,system-ui,sans-serif;
+  --mono:'IBM Plex Mono',ui-monospace,monospace;
+  --t-fast:130ms cubic-bezier(.4,0,.2,1);
+}
+
+/* kill-accent mode: collapse semantics to neutral. hierarchy must
+   not depend on color alone. */
+body.mono{ --acc:#E6E3DD; --acc-ink:#09090B; --live:#A29E96; }
+body.mono .live-dot{box-shadow:none!important;}
+
+*{box-sizing:border-box;margin:0;padding:0;}
+body{
+  background:var(--n-0);
+  color:var(--t-hi);
+  font-family:var(--sans);
+  -webkit-font-smoothing:antialiased;
+  line-height:1.5;
+}
+a{color:inherit;text-decoration:none;}
+.wrap{max-width:1080px;margin:0 auto;padding:0 28px;}
+
+/* hairline grid backdrop — texture without glow */
+body::before{
+  content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
+  background-image:
+    linear-gradient(var(--line-1) 1px,transparent 1px),
+    linear-gradient(90deg,var(--line-1) 1px,transparent 1px);
+  background-size:64px 64px;
+  -webkit-mask-image:radial-gradient(120% 90% at 50% 0%,#000 0%,transparent 70%);
+  mask-image:radial-gradient(120% 90% at 50% 0%,#000 0%,transparent 70%);
+  opacity:.5;
+}
+.wrap,.topbar{position:relative;z-index:1;}
+
+/* ---------------- top bar ---------------- */
+.topbar{display:flex;align-items:center;justify-content:space-between;max-width:1080px;margin:0 auto;padding:18px 28px;}
+.lk{display:flex;align-items:center;gap:11px;font-weight:600;font-size:15px;letter-spacing:-.01em;}
+.mk{display:grid;place-items:center;width:30px;height:30px;border-radius:var(--r-ctl);background:var(--n-3);box-shadow:inset 0 0 0 1px var(--line-2);color:var(--t-hi);font-size:15px;}
+.tag-pill{font-family:var(--mono);font-size:11px;color:var(--t-mid);padding:6px 12px;border-radius:var(--r-pill);background:var(--n-1);box-shadow:inset 0 0 0 1px var(--line-1);}
+
+/* kill-accent toggle */
+.kill{display:inline-flex;align-items:center;gap:9px;font-family:var(--mono);font-size:11px;color:var(--t-mid);background:var(--n-1);box-shadow:inset 0 0 0 1px var(--line-1);border-radius:var(--r-pill);padding:6px 6px 6px 13px;cursor:pointer;user-select:none;transition:color var(--t-fast);}
+.kill:hover{color:var(--t-hi);}
+.kill .sw{width:32px;height:17px;border-radius:var(--r-pill);background:var(--n-3);position:relative;transition:background var(--t-fast);}
+.kill .sw::after{content:"";position:absolute;top:2px;left:2px;width:13px;height:13px;border-radius:var(--r-pill);background:var(--t-mid);transition:transform var(--t-fast);}
+body.mono .kill .sw::after{transform:translateX(15px);background:var(--t-hi);}
+
+/* ---------------- hero ---------------- */
+.hero{padding:76px 0 40px;max-width:760px;}
+.eyebrow{display:inline-flex;align-items:center;gap:9px;font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--t-mid);margin-bottom:26px;padding:7px 13px;border-radius:var(--r-pill);background:var(--n-1);box-shadow:inset 0 0 0 1px var(--line-1);}
+.eyebrow .live-dot{width:6px;height:6px;border-radius:var(--r-pill);background:var(--live);box-shadow:0 0 7px var(--live);}
+.hero h1{font-size:clamp(38px,5.4vw,62px);font-weight:600;letter-spacing:-.03em;line-height:1.02;color:var(--t-hi);}
+.hero h1 .dim{color:var(--t-lo);}  /* hierarchy via tone, NOT a gradient */
+.hero p{max-width:56ch;margin-top:24px;color:var(--t-mid);font-size:17px;line-height:1.6;}
+
+/* stats — tabular mono data, not soft pills */
+.stats{display:flex;flex-wrap:wrap;gap:0;margin-top:34px;border:1px solid var(--line-1);border-radius:var(--r-card);overflow:hidden;background:var(--n-1);width:fit-content;box-shadow:var(--e1);}
+.stat{padding:14px 22px;border-right:1px solid var(--line-1);}
+.stat:last-child{border-right:none;}
+.stat b{display:block;font-family:var(--mono);font-size:22px;font-weight:600;color:var(--t-hi);font-variant-numeric:tabular-nums;letter-spacing:-.02em;line-height:1;}
+.stat span{display:block;margin-top:6px;font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--t-lo);}
+@media(max-width:560px){.stats{width:100%;}.stat{flex:1 1 40%;border-bottom:1px solid var(--line-1);}}
+
+/* ---------------- section label ---------------- */
+.slabel{font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--t-lo);margin-bottom:20px;padding-bottom:11px;border-bottom:1px solid var(--line-1);display:flex;align-items:center;gap:10px;}
+.slabel .ix{color:var(--t-mid);}
+
+/* ---------------- entry cards ---------------- */
+.cards{display:grid;grid-template-columns:1fr 1fr;gap:18px;padding:48px 0 0;}
+@media(max-width:820px){.cards{grid-template-columns:1fr;}}
+.ecard{display:flex;flex-direction:column;border-radius:var(--r-card);background:var(--n-2);box-shadow:var(--e2);overflow:hidden;transition:box-shadow var(--t-fast),transform var(--t-fast);position:relative;}
+.ecard::after{content:"";position:absolute;inset:0;border-radius:var(--r-card);box-shadow:inset 0 0 0 1px var(--line-1);pointer-events:none;transition:box-shadow var(--t-fast);}
+.ecard:hover{transform:translateY(-3px);box-shadow:var(--e3);}
+.ecard:hover::after{box-shadow:inset 0 0 0 1px var(--line-2);}
+.ecard:focus-visible{outline:none;}
+.ecard:focus-visible::after{box-shadow:inset 0 0 0 2px var(--acc);}
+.ecard .top{height:200px;position:relative;border-bottom:1px solid var(--line-1);background:var(--n-1);display:grid;place-items:center;overflow:hidden;}
+/* spec-sheet placeholder frame (asset bundle not present) */
+.frame{width:120px;height:150px;border-radius:5px;background:var(--n-2);box-shadow:inset 0 0 0 1px var(--line-2);position:relative;display:flex;flex-direction:column;}
+.frame .bar{height:22px;border-bottom:1px solid var(--line-1);display:flex;align-items:center;gap:4px;padding:0 8px;}
+.frame .bar i{width:5px;height:5px;border-radius:var(--r-pill);background:var(--line-3);display:block;}
+.frame .body{flex:1;padding:11px 10px;display:flex;flex-direction:column;gap:7px;}
+.frame .ln{height:6px;border-radius:3px;background:var(--line-2);}
+.frame .ln.s{width:60%;} .frame .ln.acc{width:46%;background:var(--acc);opacity:.55;}
+.frame .blk{margin-top:auto;height:26px;border-radius:4px;background:var(--n-3);box-shadow:inset 0 0 0 1px var(--line-2);}
+.top .ftag{position:absolute;bottom:10px;right:12px;font-family:var(--mono);font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--t-lo);}
+.ecard .bot{padding:24px 26px 26px;}
+.ecard .k{font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--t-mid);}
+.ecard h2{font-size:23px;font-weight:600;letter-spacing:-.02em;margin:11px 0 9px;}
+.ecard .desc{color:var(--t-mid);font-size:14.5px;line-height:1.55;}
+.ecard .go{display:inline-flex;align-items:center;gap:8px;margin-top:18px;font-weight:600;font-size:13.5px;color:var(--acc);font-family:var(--mono);transition:gap var(--t-fast);}
+.ecard:hover .go{gap:12px;}
+
+/* ---------------- themes strip ---------------- */
+.strip{padding:56px 0 0;}
+.theme-row{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:14px;}
+.tmini{border-radius:var(--r-ctl);overflow:hidden;background:#000;box-shadow:inset 0 0 0 1px var(--line-1);transition:box-shadow var(--t-fast);}
+.tmini:hover{box-shadow:inset 0 0 0 1px var(--line-2);}
+.tmini-dev{display:block;width:100%;}  /* your real renderer sets its own w/h */
+.tmini .lab{padding:9px 11px;font-size:12px;font-weight:500;display:flex;align-items:center;gap:8px;border-top:1px solid var(--line-1);background:var(--n-2);}
+.tmini .dot{width:8px;height:8px;border-radius:var(--r-pill);flex:0 0 auto;}
+
+/* honest fallback when assets/ isn't loaded — no fake themes */
+.assets-missing{flex:1;display:flex;flex-direction:column;gap:6px;padding:18px 20px;border-radius:var(--r-ctl);background:var(--n-1);box-shadow:inset 0 0 0 1px var(--line-1);}
+.assets-missing b{font-size:13px;font-weight:600;color:var(--t-hi);}
+.assets-missing span{font-size:12.5px;color:var(--t-mid);line-height:1.5;}
+.assets-missing code{font-family:var(--mono);font-size:11.5px;color:var(--acc);background:var(--n-2);padding:1px 6px;border-radius:4px;}
+
+/* ---------------- flows grid ---------------- */
+.flows{padding:56px 0 0;}
+.flow-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;}
+@media(max-width:820px){.flow-grid{grid-template-columns:repeat(2,1fr);}}
+.fl{display:flex;flex-direction:column;gap:10px;padding:15px 14px;border-radius:var(--r-ctl);background:var(--n-1);box-shadow:inset 0 0 0 1px var(--line-1);transition:box-shadow var(--t-fast);}
+.fl:hover{box-shadow:inset 0 0 0 1px var(--line-2);}
+.fl .n{font-family:var(--mono);font-size:11px;color:var(--t-lo);font-variant-numeric:tabular-nums;}
+.fl .t{font-size:13.5px;font-weight:500;letter-spacing:-.01em;line-height:1.25;}
+
+/* ---------------- footer ---------------- */
+footer{margin-top:72px;border-top:1px solid var(--line-1);padding:28px 0;color:var(--t-lo);font-family:var(--mono);font-size:11px;letter-spacing:.04em;text-align:center;}
+
+.spacer{height:8px;}
+</style>
+</head>
+<body>
+
+  <div class="topbar">
+    <span class="lk"><span class="mk">◈</span> WDK Whitelabel Wallet</span>
+    <span class="kill" id="kill" role="switch" aria-checked="false" tabindex="0">
+      <span>kill accent</span><span class="sw"></span>
+    </span>
+  </div>
+
+  <div class="wrap">
+
+    <section class="hero">
+      <span class="eyebrow"><span class="live-dot"></span>Tether WDK · Browser Extension Starter</span>
+      <h1>One robust wallet.<br /><span class="dim">Infinite brands.</span></h1>
+      <p>A self-custodial browser-extension wallet built so any team can fork it, fully rebrand the look and feel, and ship — while the vault, signing, and dApp logic stay untouched.</p>
+      <div class="stats">
+        <div class="stat"><b>1</b><span>token contract</span></div>
+        <div class="stat"><b>12</b><span>ready themes</span></div>
+        <div class="stat"><b>10</b><span>wallet flows</span></div>
+        <div class="stat"><b>8</b><span>customization axes</span></div>
+      </div>
+    </section>
+
+    <section style="padding-top:32px;">
+      <div class="slabel"><span class="ix">01</span> Start here</div>
+      <div class="cards">
+        <a class="ecard" href="design-system.html" tabindex="0">
+          <div class="top">
+            <div class="frame">
+              <div class="bar"><i></i><i></i><i></i></div>
+              <div class="body">
+                <div class="ln"></div><div class="ln s"></div><div class="ln acc"></div>
+                <div class="blk"></div>
+              </div>
+            </div>
+            <span class="ftag">reference · static</span>
+          </div>
+          <div class="bot">
+            <span class="k">Reference</span>
+            <h2>Design System</h2>
+            <p class="desc">The token contract, twelve themes side by side, the color · type · shape · density foundations, the component kit, and a one-object whitelabel guide.</p>
+            <span class="go">Open the design system →</span>
+          </div>
+        </a>
+        <a class="ecard" href="prototype.html" tabindex="0">
+          <div class="top">
+            <div class="frame">
+              <div class="bar"><i></i><i></i><i></i></div>
+              <div class="body">
+                <div class="ln s"></div><div class="ln"></div><div class="ln acc"></div>
+                <div class="blk"></div>
+              </div>
+            </div>
+            <span class="ftag">interactive</span>
+          </div>
+          <div class="bot">
+            <span class="k">Hands-on</span>
+            <h2>Interactive Prototype</h2>
+            <p class="desc">The extension popup, fully clickable across all ten flows — with live controls to switch brand, mode, accent, shape, density, type, and navigation in real time.</p>
+            <span class="go">Open the prototype →</span>
+          </div>
+        </a>
+      </div>
+    </section>
+
+    <section class="strip">
+      <div class="slabel"><span class="ix">02</span> Twelve themes — same wallet, same backend</div>
+      <div class="theme-row" id="themeRow"></div>
+    </section>
+
+    <section class="flows">
+      <div class="slabel"><span class="ix">03</span> Ten flows, designed once in the base style</div>
+      <div class="flow-grid" id="flowGrid"></div>
+    </section>
+
+  </div>
+
+  <footer>WDK BROWSER EXTENSION STARTER · WHITELABEL DESIGN SYSTEM &amp; PROTOTYPE · MIT</footer>
+
+  <!-- Theme engine + preview renderer. The themes, accents, type/shape/density,
+       and dashboard previews all come from these static showcase assets. -->
+  <script src="assets/theme-engine.js"></script>
+  <script src="assets/preview.js"></script>
+
+  <script>
+    // kill-accent toggle — verify the page reads with color stripped
+    const k=document.getElementById('kill');
+    const flip=()=>{const on=document.body.classList.toggle('mono');k.setAttribute('aria-checked',on);};
+    k.addEventListener('click',flip);
+    k.addEventListener('keydown',e=>{if(e.key===' '||e.key==='Enter'){e.preventDefault();flip();}});
+
+    // flow grid — static labels for the showcase overview
+    const FLOWS=["Onboarding","Import & recovery","Unlock","Dashboard","Send","Receive","Activity","Connected sites","Connect dApp","Approve transaction"];
+    document.getElementById('flowGrid').innerHTML = FLOWS.map((f,i)=>`
+      <div class="fl"><span class="n">${String(i+1).padStart(2,'0')}</span><span class="t">${f}</span></div>`).join('');
+
+    // ============================================================
+    // THEMES + PREVIEWS — driven entirely by theme-engine.js.
+    // No invented list. This mirrors your original index wiring:
+    // WDK.loadFonts / WDK.THEMES / WDKPreview.renderDashboard.
+    // Wrapped in a guard so the page still renders if the assets/
+    // folder isn't present, instead of throwing and going blank.
+    // ============================================================
+    (function () {
+      const ok = (typeof WDK !== 'undefined' && Array.isArray(WDK.THEMES)
+                  && typeof WDKPreview !== 'undefined'
+                  && typeof WDKPreview.renderDashboard === 'function');
+
+      if (ok) {
+        if (typeof WDK.loadFonts === 'function') WDK.loadFonts();
+
+        // the strip — every theme from YOUR WDK.THEMES, real dashboard + real accent.
+        // each preview scales to fill its responsive grid column.
+        const row = document.getElementById('themeRow');
+        row.innerHTML = '';
+        const cells = [];
+        WDK.THEMES.forEach((t) => {
+          const card = document.createElement('div'); card.className = 'tmini';
+          const dev  = document.createElement('div'); dev.className = 'tmini-dev';
+          const lab  = document.createElement('div'); lab.className = 'lab';
+          lab.innerHTML = `<span class="dot" style="background:${t.accent.base}"></span>${t.name}`;
+          card.appendChild(dev); card.appendChild(lab); row.appendChild(card);
+          cells.push({ dev, id: t.id });
+        });
+        function fitMinis() {
+          cells.forEach(({ dev, id }) => {
+            const w = dev.clientWidth; if (!w) return;
+            const scale = w / 412;
+            dev.innerHTML = '';
+            const inner = document.createElement('div');
+            WDKPreview.renderDashboard(inner, id);
+            inner.style.width = '412px'; inner.style.height = '720px';
+            inner.style.transformOrigin = 'top left';
+            inner.style.transform = `scale(${scale})`;
+            dev.style.height = Math.round(720 * scale) + 'px';
+            dev.style.overflow = 'hidden';
+            dev.appendChild(inner);
+          });
+        }
+        fitMinis();
+        let _rt; window.addEventListener('resize', () => { clearTimeout(_rt); _rt = setTimeout(fitMinis, 150); });
+      } else {
+        // assets/ not loaded — show an honest notice, don't fake themes
+        const note = `<div class="assets-missing">
+          <b>Theme previews need <code>assets/theme-engine.js</code> + <code>assets/preview.js</code>.</b>
+          <span>Open this file alongside your <code>assets/</code> folder and your real 12 themes render here automatically — nothing is hardcoded.</span>
+        </div>`;
+        const row = document.getElementById('themeRow');
+        if (row) row.innerHTML = note;
+      }
+    })();
+  </script>
+</body>
+</html>

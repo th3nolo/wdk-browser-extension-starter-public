@@ -1,0 +1,213 @@
+{
+  "schemaVersion": 1,
+  "reviewedAt": "2026-06-01",
+  "officialDocs": "https://docs.wdk.tether.io/llms-full.txt",
+  "runtimeDecision": "Only browser-smoked wallet packages may be production runtime dependencies. Evaluated wallet, protocol, fiat, gasless, and account-abstraction packages stay out of the extension runtime until package pinning, audit, browser-bundle, and coverage exists.",
+  "allowedRuntimeWdkPackages": [
+    "@tetherto/wdk",
+    "@tetherto/wdk-wallet-btc",
+    "@tetherto/wdk-wallet-evm",
+    "@tetherto/wdk-wallet-solana",
+    "@tetherto/wdk-wallet-spark"
+  ],
+  "blockedRuntimeTerms": [
+    "TON",
+    "Tron",
+    "MoonPay",
+    "ERC-4337",
+    "gasless",
+    "gas-free",
+    "Velora"
+  ],
+  "evaluatedNonRuntimePackages": [
+    {
+      "name": "@tetherto/wdk-wallet-ton",
+      "decision": "blocked",
+      "surface": "wallet-module",
+      "registryVersion": "1.0.0-beta.9",
+      "registryDependencies": {
+        "@tetherto/wdk-wallet": "1.0.0-beta.9",
+        "@tetherto/wdk-failover-provider": "1.0.0-beta.2",
+        "@ton/crypto": "3.3.0",
+        "@ton/ton": "16.2.4",
+        "bare-node-runtime": "^1.1.4"
+      },
+      "blockers": [
+        "Install attempt on 2026-06-01 failed with ERR_PNPM_NO_MATURE_MATCHING_VERSION under the repository minimum-release-age policy.",
+        "Needs browser bundle, account derivation, balance, send, and testnet coverage before runtime exposure."
+      ],
+      "requiredDocs": [
+        "Version checked: `1.0.0-beta.9`",
+        "install was delayed by the minimum-release-age policy",
+        "The project needs TON accounts"
+      ]
+    },
+    {
+      "name": "@tetherto/wdk-wallet-tron",
+      "decision": "blocked",
+      "surface": "wallet-module",
+      "registryVersion": "1.0.0-beta.5",
+      "registryDependencies": {
+        "@tetherto/wdk-wallet": "1.0.0-beta.8",
+        "tronweb": "6.2.0",
+        "bare-node-runtime": "^1.3.1"
+      },
+      "blockers": [
+        "Depends on @tetherto/wdk-wallet 1.0.0-beta.8 instead of the repository beta.9 baseline.",
+        "Needs browser bundle, audit, address validation, balance, send, and testnet coverage before runtime exposure."
+      ],
+      "requiredDocs": [
+        "Version checked: `1.0.0-beta.5`",
+        "The package baseline matches this starter"
+      ]
+    },
+    {
+      "name": "@tetherto/wdk-wallet-evm-erc-4337",
+      "decision": "blocked",
+      "surface": "account-abstraction",
+      "registryVersion": "1.0.0-beta.7",
+      "registryDependencies": {
+        "@tetherto/wdk-wallet": "1.0.0-beta.9",
+        "@tetherto/wdk-wallet-evm": "1.0.0-beta.12",
+        "abstractionkit": "0.3.8",
+        "bare-node-runtime": "^1.1.4",
+        "ethers": "6.14.4"
+      },
+      "blockers": [
+        "Pulls @tetherto/wdk-wallet-evm 1.0.0-beta.12 instead of the pinned direct beta.9 EVM wallet.",
+        "Needs bundler/paymaster configuration, browser smoke, and account-abstraction UX before runtime exposure."
+      ],
+      "requiredDocs": [
+        "Version checked: `1.0.0-beta.7`",
+        "Account-abstraction UX"
+      ]
+    },
+    {
+      "name": "@tetherto/wdk-protocol-swap-velora-evm",
+      "decision": "not-exposed",
+      "surface": "protocol-module",
+      "registryVersion": "1.0.0-beta.4",
+      "registryDependencies": {
+        "@tetherto/wdk-wallet": "^1.0.0-beta.1",
+        "@tetherto/wdk-wallet-evm": "^1.0.0-beta.2",
+        "@tetherto/wdk-wallet-evm-erc-4337": "^1.0.0-beta.1",
+        "@velora-dex/sdk": "9.0.0",
+        "bare-node-runtime": "^1.1.4",
+        "ethers": "6.13.5"
+      },
+      "blockers": [
+        "Adds protocol SDK and ERC-4337 dependency surface.",
+        "Needs quote validation, calldata decoding parity, audit, browser-bundle verification, and controlled swap harness before runtime exposure."
+      ],
+      "requiredDocs": [
+        "Version checked: `1.0.0-beta.4`",
+        "Swap quotes, calldata decoding"
+      ]
+    },
+    {
+      "name": "@tetherto/wdk-protocol-bridge-usdt0-evm",
+      "decision": "not-exposed",
+      "surface": "protocol-module",
+      "registryVersion": "1.0.0-beta.4",
+      "registryDependencies": {
+        "@tetherto/wdk-wallet": "1.0.0-beta.8",
+        "@tetherto/wdk-wallet-evm": "1.0.0-beta.12",
+        "@tetherto/wdk-wallet-evm-erc-4337": "1.0.0-beta.6",
+        "@layerzerolabs/lz-v2-utilities": "3.0.114",
+        "@ton/core": "0.61.0",
+        "bare-node-runtime": "^1.1.4",
+        "tronweb": "6.2.0"
+      },
+      "blockers": [
+        "Pulls wallet beta.8, EVM wallet beta.12, ERC-4337 beta.6, TON, and Tron dependency surface.",
+        "Needs quote/min-receive validation, bridge-fee review, audit, browser-bundle verification, and controlled bridge harness before runtime exposure."
+      ],
+      "requiredDocs": [
+        "Version checked: `1.0.0-beta.4`",
+        "Bridge quotes, fee handling"
+      ]
+    },
+    {
+      "name": "@tetherto/wdk-protocol-lending-aave-evm",
+      "decision": "not-exposed",
+      "surface": "protocol-module",
+      "registryVersion": "1.0.0-beta.4",
+      "registryDependencies": {
+        "@tetherto/wdk-wallet": "1.0.0-beta.7",
+        "@tetherto/wdk-wallet-evm": "1.0.0-beta.8",
+        "@tetherto/wdk-wallet-evm-erc-4337": "1.0.0-beta.5",
+        "@bgd-labs/aave-address-book": "4.33.0",
+        "bare-node-runtime": "^1.1.4",
+        "ethers": "6.14.3"
+      },
+      "blockers": [
+        "Depends on older wallet package baselines and ERC-4337 beta.5.",
+        "Needs reserve/market validation, health-factor/allowance review, audit, browser-bundle verification, and controlled Aave harness before runtime exposure."
+      ],
+      "requiredDocs": [
+        "Version checked: `1.0.0-beta.4`",
+        "Market/reserve checks"
+      ]
+    },
+    {
+      "name": "@tetherto/wdk-protocol-fiat-moonpay",
+      "decision": "optional",
+      "surface": "fiat-module",
+      "registryVersion": "1.0.0-beta.2",
+      "registryDependencies": {
+        "@tetherto/wdk-wallet": "^1.0.0-beta.6",
+        "bare-node-runtime": "^1.1.4",
+        "bignumber.js": "^9.3.1"
+      },
+      "blockers": [
+        "API-key and provider-configuration dependent.",
+        "Optional only when explicitly configured and browser-smoked; not part of the default starter runtime."
+      ],
+      "requiredDocs": [
+        "Version checked: `1.0.0-beta.2`",
+        "Fiat provider credentials"
+      ]
+    },
+    {
+      "name": "@tetherto/wdk-wallet-ton-gasless",
+      "decision": "blocked",
+      "surface": "gasless-wallet-module",
+      "registryVersion": "1.0.0-beta.5",
+      "registryDependencies": {
+        "@tetherto/wdk-wallet": "^1.0.0-beta.8",
+        "@tetherto/wdk-wallet-ton": "1.0.0-beta.8",
+        "@ton-api/client": "0.4.0",
+        "@ton/ton": "15.1.0",
+        "bare-node-runtime": "^1.1.4"
+      },
+      "blockers": [
+        "Depends on older TON wallet beta.8 and wallet baseline range.",
+        "Needs paymaster/provider configuration, browser-bundle verification, and gasless flow harness before runtime exposure."
+      ],
+      "requiredDocs": [
+        "Version checked: `1.0.0-beta.5`",
+        "TON baseline and paymaster flow coverage"
+      ]
+    },
+    {
+      "name": "@tetherto/wdk-wallet-tron-gasfree",
+      "decision": "blocked",
+      "surface": "gasfree-wallet-module",
+      "registryVersion": "1.0.0-beta.6",
+      "registryDependencies": {
+        "@tetherto/wdk-wallet": "1.0.0-beta.9",
+        "@tetherto/wdk-wallet-tron": "1.0.0-beta.5",
+        "tronweb": "6.2.0",
+        "bare-node-runtime": "^1.1.4"
+      },
+      "blockers": [
+        "Depends on blocked Tron wallet beta.5 and requires service-provider credentials.",
+        "Needs browser-bundle verification, provider credential configuration, and gas-free flow harness before runtime exposure."
+      ],
+      "requiredDocs": [
+        "Version checked: `1.0.0-beta.6`",
+        "Tron baseline, provider credentials"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "browser": "chrome-for-testing",
+  "minimumAvailabilityHours": 72,
+  "versions": [
+    {
+      "channel": "Stable",
+      "version": "149.0.7827.22",
+      "revision": "1625079",
+      "availableAt": "2026-05-19T23:34:30.000Z",
+      "platforms": {
+        "linux64": {
+          "url": "https://storage.googleapis.com/chrome-for-testing-public/149.0.7827.22/linux64/chrome-linux64.zip",
+          "sha256": "69d3de016c1e6e0483fe0d78954b66f46fd4404cb5900978a28df22657071194"
+        }
+      }
+    }
+  ]
+}
