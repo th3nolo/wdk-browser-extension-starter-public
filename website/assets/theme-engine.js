@@ -1,12 +1,12 @@
 /* ============================================================================
-   WDK Whitelabel Theme Engine
+   WDK Theme Engine
    ----------------------------------------------------------------------------
    The wallet UI references ONLY semantic CSS custom properties (the "token
    contract"). A theme is a small JS object; applyTheme() expands it into the
    full token set and writes the variables onto a target element. Swapping the
-   theme object fully rebrands the wallet — no component, flow, or backend code
-   changes. This file is the single source of truth shared by the design-system
-   page and the interactive prototype.
+   theme object changes the wallet presentation without changing component,
+   flow, or backend code. This file is shared by the design-system page and the
+   interactive prototype.
    ========================================================================== */
 (function () {
   "use strict";
@@ -153,14 +153,14 @@
   }
 
   /* ======================================================================
-     THEMES — 2 base directions + 6 fictional whitelabel brands
+     THEMES — base directions and fictional brand examples
      ====================================================================== */
   const sans = "'Hanken Grotesk', ui-sans-serif, system-ui, sans-serif";
   const THEMES = [
-    /* ---- BASE 1: evolved premium dark (refines the shipped UI) -------- */
+    /* ---- BASE 1: current dark direction ------------------------------- */
     {
       id: "evolved", name: "WDK Evolved", group: "Base",
-      tagline: "Refined premium dark — the shipped UI, leveled up.",
+      tagline: "Dark base theme for the current UI.",
       mode: "dark", tint: 255, chroma: 0.014,
       accent: { base: "#2dd4bf", strong: "#14b8a6", ink: "#03231f", second: "#6366f1" },
       fonts: { head: "'Space Grotesk', sans-serif", body: "'Space Grotesk', sans-serif", mono: "'JetBrains Mono', monospace" },

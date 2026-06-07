@@ -3,23 +3,16 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>WDK Whitelabel Wallet — Overview</title>
+<title>WDK Wallet Theme Showcase</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;450;500;600;700&display=swap" rel="stylesheet" />
 <link rel="stylesheet" href="assets/wallet.css" />
 <style>
 /* ============================================================
-   WDK OVERVIEW — rebuilt
-   Brief: developer-tool serious, dark, must survive kill-accent.
-   Hierarchy lives in TYPE + ELEVATION SCALE + SPACING.
-   The accent does interactive/semantic work ONLY and is the
-   last 2% — toggle "kill accent" and the page still reads.
-   What was removed vs the original:
-     · the #2dd4bf + #818cf8 cyan/indigo gradient (the AI tell)
-     · gradient-clipped headline text
-     · glow radial backgrounds
-     · scattered radii (999/22/14/12/10/9) with no role logic
+   WDK overview page
+   Hierarchy comes from type, spacing, and elevation. Accent color
+   is reserved for interactive and status cues.
 ============================================================ */
 :root{
   /* neutral ramp — evenly stepped, real scale */
@@ -57,8 +50,7 @@
   --t-fast:130ms cubic-bezier(.4,0,.2,1);
 }
 
-/* kill-accent mode: collapse semantics to neutral. hierarchy must
-   not depend on color alone. */
+/* Neutral mode keeps the layout readable without accent color. */
 body.mono{ --acc:#E6E3DD; --acc-ink:#09090B; --live:#A29E96; }
 body.mono .live-dot{box-shadow:none!important;}
 
@@ -96,7 +88,7 @@ body::before{
 .repo-link:hover{color:var(--t-hi);box-shadow:inset 0 0 0 1px var(--line-2);}
 .repo-link:focus-visible{outline:none;box-shadow:inset 0 0 0 2px var(--acc);}
 
-/* kill-accent toggle */
+/* neutral-mode toggle */
 .kill{display:inline-flex;align-items:center;gap:9px;font-family:var(--mono);font-size:11px;color:var(--t-mid);background:var(--n-1);box-shadow:inset 0 0 0 1px var(--line-1);border-radius:var(--r-pill);padding:6px 6px 6px 13px;cursor:pointer;user-select:none;transition:color var(--t-fast);}
 .kill:hover{color:var(--t-hi);}
 .kill .sw{width:32px;height:17px;border-radius:var(--r-pill);background:var(--n-3);position:relative;transition:background var(--t-fast);}
@@ -155,7 +147,7 @@ body.mono .kill .sw::after{transform:translateX(15px);background:var(--t-hi);}
 .theme-row{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:14px;}
 .tmini{border-radius:var(--r-ctl);overflow:hidden;background:#000;box-shadow:inset 0 0 0 1px var(--line-1);transition:box-shadow var(--t-fast);}
 .tmini:hover{box-shadow:inset 0 0 0 1px var(--line-2);}
-.tmini-dev{display:block;width:100%;}  /* your real renderer sets its own w/h */
+.tmini-dev{display:block;width:100%;}  /* preview renderer sets its own w/h */
 .tmini .lab{padding:9px 11px;font-size:12px;font-weight:500;display:flex;align-items:center;gap:8px;border-top:1px solid var(--line-1);background:var(--n-2);}
 .tmini .dot{width:8px;height:8px;border-radius:var(--r-pill);flex:0 0 auto;}
 
@@ -183,11 +175,11 @@ footer{margin-top:72px;border-top:1px solid var(--line-1);padding:28px 0;color:v
 <body>
 
   <div class="topbar">
-    <span class="lk"><span class="mk">◈</span> WDK Whitelabel Wallet</span>
+    <span class="lk"><span class="mk">◈</span> WDK Wallet Showcase</span>
     <div class="top-actions">
       <a class="repo-link" href="https://github.com/th3nolo/wdk-browser-extension-starter-public" target="_blank" rel="noreferrer">GitHub repo</a>
       <span class="kill" id="kill" role="switch" aria-checked="false" tabindex="0">
-        <span>kill accent</span><span class="sw"></span>
+        <span>neutral mode</span><span class="sw"></span>
       </span>
     </div>
   </div>
@@ -196,10 +188,10 @@ footer{margin-top:72px;border-top:1px solid var(--line-1);padding:28px 0;color:v
 
     <section class="hero">
       <span class="eyebrow"><span class="live-dot"></span>Tether WDK · Browser Extension Starter</span>
-      <h1>One robust wallet.<br /><span class="dim">Infinite brands.</span></h1>
-      <p>A self-custodial browser-extension wallet built so any team can fork it, fully rebrand the look and feel, and ship — while the vault, signing, and dApp logic stay untouched.</p>
+      <h1>WDK Browser Wallet Starter.<br /><span class="dim">Theme-ready UI.</span></h1>
+      <p>A self-custodial browser-extension wallet with encrypted local vaults, WDK-powered accounts, dApp approvals, and a token-based theme system.</p>
       <div class="stats">
-        <div class="stat"><b>1</b><span>token contract</span></div>
+        <div class="stat"><b>1</b><span>theme token map</span></div>
         <div class="stat"><b>12</b><span>ready themes</span></div>
         <div class="stat"><b>10</b><span>wallet flows</span></div>
         <div class="stat"><b>8</b><span>customization axes</span></div>
@@ -223,7 +215,7 @@ footer{margin-top:72px;border-top:1px solid var(--line-1);padding:28px 0;color:v
           <div class="bot">
             <span class="k">Reference</span>
             <h2>Design System</h2>
-            <p class="desc">The token contract, twelve themes side by side, the color · type · shape · density foundations, the component kit, and a one-object whitelabel guide.</p>
+            <p class="desc">Theme tokens, twelve skins, color, type, shape, density, component states, and the small object used to add a brand.</p>
             <span class="go">Open the design system →</span>
           </div>
         </a>
@@ -239,9 +231,9 @@ footer{margin-top:72px;border-top:1px solid var(--line-1);padding:28px 0;color:v
             <span class="ftag">interactive</span>
           </div>
           <div class="bot">
-            <span class="k">Hands-on</span>
+            <span class="k">Prototype</span>
             <h2>Interactive Prototype</h2>
-            <p class="desc">The extension popup, fully clickable across all ten flows — with live controls to switch brand, mode, accent, shape, density, type, and navigation in real time.</p>
+            <p class="desc">A clickable popup prototype for onboarding, wallet, send, receive, activity, connected sites, and approval flows.</p>
             <span class="go">Open the prototype →</span>
           </div>
         </a>
@@ -249,18 +241,18 @@ footer{margin-top:72px;border-top:1px solid var(--line-1);padding:28px 0;color:v
     </section>
 
     <section class="strip">
-      <div class="slabel"><span class="ix">02</span> Twelve themes — same wallet, same backend</div>
+      <div class="slabel"><span class="ix">02</span> Twelve skins sharing one wallet UI</div>
       <div class="theme-row" id="themeRow"></div>
     </section>
 
     <section class="flows">
-      <div class="slabel"><span class="ix">03</span> Ten flows, designed once in the base style</div>
+      <div class="slabel"><span class="ix">03</span> Ten popup flows</div>
       <div class="flow-grid" id="flowGrid"></div>
     </section>
 
   </div>
 
-  <footer>WDK BROWSER EXTENSION STARTER · WHITELABEL DESIGN SYSTEM &amp; PROTOTYPE · MIT</footer>
+  <footer>WDK BROWSER EXTENSION STARTER · THEME SYSTEM &amp; PROTOTYPE · MIT</footer>
 
   <!-- Theme engine + preview renderer. The themes, accents, type/shape/density,
        and dashboard previews all come from these static showcase assets. -->
@@ -268,7 +260,7 @@ footer{margin-top:72px;border-top:1px solid var(--line-1);padding:28px 0;color:v
   <script src="assets/preview.js"></script>
 
   <script>
-    // kill-accent toggle — verify the page reads with color stripped
+    // neutral-mode toggle
     const k=document.getElementById('kill');
     const flip=()=>{const on=document.body.classList.toggle('mono');k.setAttribute('aria-checked',on);};
     k.addEventListener('click',flip);
@@ -280,8 +272,8 @@ footer{margin-top:72px;border-top:1px solid var(--line-1);padding:28px 0;color:v
       <div class="fl"><span class="n">${String(i+1).padStart(2,'0')}</span><span class="t">${f}</span></div>`).join('');
 
     // ============================================================
-    // THEMES + PREVIEWS — driven entirely by theme-engine.js.
-    // No invented list. This mirrors your original index wiring:
+    // THEMES + PREVIEWS — driven by theme-engine.js.
+    // This mirrors the index wiring:
     // WDK.loadFonts / WDK.THEMES / WDKPreview.renderDashboard.
     // Wrapped in a guard so the page still renders if the assets/
     // folder isn't present, instead of throwing and going blank.
@@ -294,7 +286,7 @@ footer{margin-top:72px;border-top:1px solid var(--line-1);padding:28px 0;color:v
       if (ok) {
         if (typeof WDK.loadFonts === 'function') WDK.loadFonts();
 
-        // the strip — every theme from YOUR WDK.THEMES, real dashboard + real accent.
+        // the strip — every theme from WDK.THEMES with a dashboard preview.
         // each preview scales to fill its responsive grid column.
         const row = document.getElementById('themeRow');
         row.innerHTML = '';
@@ -328,7 +320,7 @@ footer{margin-top:72px;border-top:1px solid var(--line-1);padding:28px 0;color:v
         // assets/ not loaded — show an honest notice, don't fake themes
         const note = `<div class="assets-missing">
           <b>Theme previews need <code>assets/theme-engine.js</code> + <code>assets/preview.js</code>.</b>
-          <span>Open this file alongside your <code>assets/</code> folder and your real 12 themes render here automatically — nothing is hardcoded.</span>
+          <span>Open this file with the <code>assets/</code> folder present to render the theme previews.</span>
         </div>`;
         const row = document.getElementById('themeRow');
         if (row) row.innerHTML = note;

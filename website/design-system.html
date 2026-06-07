@@ -10,7 +10,7 @@
 <link rel="stylesheet" href="assets/wallet.css" />
 <style>
   :root {
-    /* new WDK token language — neutral ramp, role radii, single accent */
+    /* WDK page tokens: neutral ramp, role radii, single accent */
     --n-0:#09090B; --n-1:#0E0E11; --n-2:#141418; --n-3:#1C1C21; --n-4:#26262D;
     --line-1:#1F1F25; --line-2:#2E2E37; --line-3:#41414C;
     --t-hi:#F3F1EC; --t-mid:#A29E96; --t-lo:#67635C; --t-dis:#403E3A;
@@ -31,7 +31,7 @@
     --pg-acc: var(--acc); --pg-acc-2: var(--acc);
     --pg-head: var(--sans); --pg-body: var(--sans); --pg-mono: var(--mono);
   }
-  /* kill-accent mode: collapse semantics to neutral; hierarchy must survive */
+  /* Neutral mode keeps the layout readable without accent color. */
   body.mono{ --acc:#E6E3DD; --acc-ink:#09090B; --go:#C9C5BE; --stop:#E6E3DD; }
   * { box-sizing: border-box; }
   html { scroll-behavior: smooth; scroll-padding-top: 76px; }
@@ -186,7 +186,7 @@
     .ic-grid { grid-template-columns: repeat(4, 1fr); }
   }
 
-  /* ===================== NEW-LANGUAGE NORMALIZATION ===================== */
+  /* ===================== PAGE NORMALIZATION ===================== */
   h1, h2, h3, h4 { font-weight: 600; }
 
   /* hairline grid backdrop — texture, never glow */
@@ -217,7 +217,7 @@
   /* focus-visible double-ring on interactive chrome */
   .btn:focus-visible,.picker button:focus-visible,.topnav nav a:focus-visible,.topnav .cta:focus-visible{outline:none;box-shadow:0 0 0 2px var(--n-1),0 0 0 4px var(--line-3);}
 
-  /* kill-accent toggle */
+  /* neutral-mode toggle */
   .kill{display:inline-flex;align-items:center;gap:9px;font-family:var(--mono);font-size:11px;color:var(--t-mid);background:var(--n-1);box-shadow:inset 0 0 0 1px var(--line-1);border-radius:var(--r-pill);padding:6px 6px 6px 13px;cursor:pointer;user-select:none;transition:color var(--t-fast);}
   .kill:hover{color:var(--t-hi);}
   .kill .sw3{width:32px;height:17px;border-radius:var(--r-pill);background:var(--n-3);position:relative;transition:background var(--t-fast);}
@@ -238,7 +238,7 @@
       <a href="#guide">Add a theme</a>
     </nav>
     <div style="display:flex;align-items:center;gap:12px">
-      <span class="kill" id="kill" role="switch" aria-checked="false" tabindex="0"><span>kill accent</span><span class="sw3"></span></span>
+      <span class="kill" id="kill" role="switch" aria-checked="false" tabindex="0"><span>neutral mode</span><span class="sw3"></span></span>
       <a class="cta" href="prototype.html">Open prototype →</a>
     </div>
   </div>
@@ -250,14 +250,14 @@
         <div>
           <div class="pill-row" style="margin-bottom:22px">
             <span class="pill"><b>WDK</b> Browser Extension Starter</span>
-            <span class="pill">Whitelabel-ready</span>
+            <span class="pill">Theme-ready</span>
           </div>
-          <h1>One robust wallet.<br />Infinite brands.</h1>
-          <p class="lede">A design system built so a team can fork the WDK extension, recolor and reshape every surface, and ship a fully branded self-custodial wallet — without touching the vault, signing, or dApp logic underneath.</p>
+          <h1>Theme system for the WDK wallet.</h1>
+          <p class="lede">Theme tokens for the browser-extension wallet: change colors, type, shape, density, and navigation while the vault, signing, and dApp code stay unchanged.</p>
           <div class="pill-row">
             <span class="pill"><b>12</b> ready themes</span>
             <span class="pill"><b>10</b> wallet flows</span>
-            <span class="pill"><b>1</b> token contract</span>
+            <span class="pill"><b>1</b> theme token map</span>
           </div>
           <div class="hero-actions">
             <a class="btn primary" href="prototype.html">Open the prototype</a>
@@ -275,13 +275,13 @@
       <div class="sec-head">
         <div class="kicker">Design reasoning</div>
         <h2>System principles</h2>
-        <p>The assumptions behind the theme system and approval-focused UI.</p>
+        <p>The rules behind the theme system and approval-focused UI.</p>
       </div>
       <div class="lead-list">
         <div class="li"><span class="num">01</span><div><b>The wallet is a security surface, not a canvas.</b> <span>Visual changes must never hide, reorder, or soften approval-critical data. Theming only touches presentation tokens — never the meaning of an origin, amount, network, or warning.</span></div></div>
-        <div class="li"><span class="num">02</span><div><b>Everything brand-able routes through one token contract.</b> <span>The UI references only semantic variables (<code>--accent</code>, <code>--surface</code>, <code>--radius</code>, <code>--font-head</code>…). A theme is a small object that fills the contract. Swap it and the whole wallet rebrands; the React components, background controller, and WDK modules never change.</span></div></div>
-        <div class="li"><span class="num">03</span><div><b>Two base directions cover common forks.</b> <span>An <b>Evolved</b> premium-dark direction refines the shipped teal UI, and a <b>Neutral</b> base in light + dark is designed to be recolored from scratch. Six fictional brands demonstrate the range.</span></div></div>
-        <div class="li"><span class="num">04</span><div><b>Eight customization axes are first-class.</b> <span>Color, typography, logo, corner radius &amp; shape, density, light/dark, iconography, and navigation pattern — each is a knob a whitelabeler can turn safely. The prototype exposes all of them as live tweaks.</span></div></div>
+        <div class="li"><span class="num">02</span><div><b>Brand styling lives in one token map.</b> <span>The UI references semantic variables (<code>--accent</code>, <code>--surface</code>, <code>--radius</code>, <code>--font-head</code>). A theme fills those values. React components, the background controller, and WDK modules do not change.</span></div></div>
+        <div class="li"><span class="num">03</span><div><b>Base themes cover starter variants.</b> <span>The starter includes the current dark direction, neutral light and dark bases, and fictional brand examples for testing range.</span></div></div>
+        <div class="li"><span class="num">04</span><div><b>Eight styling controls are exposed.</b> <span>Color, typography, logo, corner radius, density, light/dark mode, iconography, and navigation pattern can be changed in the prototype.</span></div></div>
       </div>
     </section>
 
@@ -289,8 +289,8 @@
     <section id="contract">
       <div class="sec-head">
         <div class="kicker">The contract</div>
-        <h2>One set of tokens drives everything</h2>
-        <p>This is the seam between brand and backend. The picker below changes the active theme for the whole page — watch the token values, swatches, and components update while the markup stays identical.</p>
+        <h2>One token map drives the UI</h2>
+        <p>The picker changes the active theme for this page. Token values, swatches, and components update while the markup stays the same.</p>
       </div>
       <div class="picker" id="picker"><span class="lbl">Active theme</span></div>
       <div class="grid-2">
@@ -308,8 +308,8 @@
     <section id="themes">
       <div class="sec-head">
         <div class="kicker">Theme gallery</div>
-        <h2>The same screen, twelve brands</h2>
-        <p>Identical dashboard markup, twelve token sets. Two base directions you can ship as-is, plus a spread of fictional whitelabel brands — luxury, gaming, fintech, developer, consumer, after-dark, arctic glass, ivory vault, and swiss ledger.</p>
+        <h2>The same screen, twelve skins</h2>
+        <p>Identical dashboard markup, twelve token sets. The gallery includes base themes plus fictional brands used to test contrast, density, typography, and navigation choices.</p>
       </div>
       <div class="theme-grid" id="themeGrid"></div>
     </section>
@@ -342,7 +342,7 @@
       <div class="sec-head">
         <div class="kicker">Foundations · shape, density &amp; navigation</div>
         <h2>Shape, density &amp; navigation</h2>
-        <p>Radius, spacing, and the navigation pattern are tokens too. A whitelabeler picks a shape language, a density, and one of three navigation patterns — all rendered live below in the active theme, all the same screen underneath.</p>
+        <p>Radius, spacing, and navigation are tokens too. Change shape, density, or navigation and the same dashboard renders with the active theme.</p>
       </div>
 
       <h3 class="sub-h">Navigation — one component, three patterns</h3>
@@ -384,9 +384,9 @@
     <!-- GUIDE -->
     <section id="guide" style="border-bottom:none">
       <div class="sec-head">
-        <div class="kicker">Whitelabel guide</div>
-        <h2>Ship a brand in one object</h2>
-        <p>To rebrand the wallet, a team adds one theme object. No component edits, no backend edits. Here is the full shape — exactly what every theme in this gallery is.</p>
+        <div class="kicker">Theme guide</div>
+        <h2>Add a brand with one object</h2>
+        <p>To theme the wallet, add one theme object. The component and background code stay unchanged.</p>
       </div>
       <div class="grid-2" style="align-items:start">
         <pre><span class="c">// brand.theme.js — the entire rebrand</span>
@@ -414,20 +414,20 @@
 applyTheme(document.documentElement, myBrand.id);</pre>
         <div style="display:flex;flex-direction:column;gap:16px">
           <div class="notebox"><b>What you never touch:</b> the encrypted vault, session lifetime, WDK account derivation, signing, dApp approval semantics, RPC validation, or the message-passing bridge. Theming is presentation-only — by design.</div>
-          <div class="notebox"><b>Guardrails baked in.</b> Confirmation screens always lead with decoded action details, origin, amount, and warnings. No theme can blur, truncate, or hide approval-critical data — the contract has no token for that.</div>
+          <div class="notebox"><b>Approval data stays visible.</b> Confirmation screens lead with decoded action details, origin, amount, and warnings. Theme tokens do not control hiding, blurring, or reordering approval-critical data.</div>
           <a class="btn primary" href="prototype.html" style="align-self:flex-start">Try every flow in the prototype →</a>
         </div>
       </div>
     </section>
 
-    <footer>WDK Browser Extension Starter · Whitelabel design system · 12 themes · 10 flows · MIT</footer>
+    <footer>WDK Browser Extension Starter · Theme system · 12 themes · 10 flows · MIT</footer>
   </div>
 
   <script src="assets/theme-engine.js"></script>
   <script src="assets/preview.js"></script>
   <script>
     WDK.loadFonts();
-    /* kill-accent toggle — verify the page reads with color stripped */
+    /* neutral-mode toggle */
     (function(){const k=document.getElementById('kill');if(!k)return;const flip=()=>{const on=document.body.classList.toggle('mono');k.setAttribute('aria-checked',on);};k.addEventListener('click',flip);k.addEventListener('keydown',e=>{if(e.key===' '||e.key==='Enter'){e.preventDefault();flip();}});})();
     const THEMES = WDK.THEMES;
     let active = "evolved";

@@ -1,7 +1,7 @@
 name: Deploy showcase to GitHub Pages
 
-# Publishes the standalone white-label showcase in website/ to GitHub Pages.
-# This workflow is fully independent of the extension CI (`verify:ci`):
+# Publishes the standalone theme showcase in website/ to GitHub Pages.
+# This workflow is independent of the extension CI (`verify:ci`):
 # it never installs deps, runs the wxt build, or touches the extension package,
 # so it cannot affect or be gated by extension CI. It only uploads website/.
 # If GitHub Pages is not enabled for the repository yet, the job exits cleanly

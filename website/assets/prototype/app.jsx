@@ -1,5 +1,5 @@
 /* Prototype orchestrator: extension popup device, flow router, and the live
-   whitelabel control rail (all 8 theming axes). */
+   theme control rail. */
 const { useState, useEffect, useMemo, useRef } = React;
 
 /* ---- build a live theme spec from preset + per-axis overrides ---- */
@@ -131,7 +131,7 @@ function App() {
     <div className="proto">
       {/* ---------------- control rail ---------------- */}
       <aside className="rail">
-        <div className="rail-brand"><span className="rb-mark">◈</span><div><div className="rb-t">WDK Wallet</div><div className="rb-s">Whitelabel prototype</div></div></div>
+        <div className="rail-brand"><span className="rb-mark">◈</span><div><div className="rb-t">WDK Wallet</div><div className="rb-s">Theme prototype</div></div></div>
 
         <RailGroup title="Flows" hint="10 core">
           <div className="flow-list">

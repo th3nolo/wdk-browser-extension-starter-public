@@ -1,7 +1,7 @@
 /* ============================================================================
    WDK Wallet UI — token-driven component styles.
    Every value references a semantic token from the theme engine. Nothing here
-   is theme-specific; swap the tokens and the whole wallet rebrands. Scoped to
+   is theme-specific; swap the tokens and the wallet presentation changes. Scoped to
    .wlt so it can live both in the prototype and the design-system gallery.
    ========================================================================== */
 .wlt {
