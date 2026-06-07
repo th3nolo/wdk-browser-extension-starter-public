@@ -91,6 +91,10 @@ body::before{
 .lk{display:flex;align-items:center;gap:11px;font-weight:600;font-size:15px;letter-spacing:-.01em;}
 .mk{display:grid;place-items:center;width:30px;height:30px;border-radius:var(--r-ctl);background:var(--n-3);box-shadow:inset 0 0 0 1px var(--line-2);color:var(--t-hi);font-size:15px;}
 .tag-pill{font-family:var(--mono);font-size:11px;color:var(--t-mid);padding:6px 12px;border-radius:var(--r-pill);background:var(--n-1);box-shadow:inset 0 0 0 1px var(--line-1);}
+.top-actions{display:flex;align-items:center;gap:10px;}
+.repo-link{display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:11px;color:var(--t-mid);background:var(--n-1);box-shadow:inset 0 0 0 1px var(--line-1);border-radius:var(--r-pill);padding:6px 12px;transition:color var(--t-fast),box-shadow var(--t-fast);}
+.repo-link:hover{color:var(--t-hi);box-shadow:inset 0 0 0 1px var(--line-2);}
+.repo-link:focus-visible{outline:none;box-shadow:inset 0 0 0 2px var(--acc);}
 
 /* kill-accent toggle */
 .kill{display:inline-flex;align-items:center;gap:9px;font-family:var(--mono);font-size:11px;color:var(--t-mid);background:var(--n-1);box-shadow:inset 0 0 0 1px var(--line-1);border-radius:var(--r-pill);padding:6px 6px 6px 13px;cursor:pointer;user-select:none;transition:color var(--t-fast);}
@@ -98,6 +102,7 @@ body::before{
 .kill .sw{width:32px;height:17px;border-radius:var(--r-pill);background:var(--n-3);position:relative;transition:background var(--t-fast);}
 .kill .sw::after{content:"";position:absolute;top:2px;left:2px;width:13px;height:13px;border-radius:var(--r-pill);background:var(--t-mid);transition:transform var(--t-fast);}
 body.mono .kill .sw::after{transform:translateX(15px);background:var(--t-hi);}
+@media(max-width:640px){.topbar{align-items:flex-start;gap:14px;}.top-actions{flex-direction:column;align-items:flex-end;gap:8px;}.repo-link{padding:6px 11px;}}
 
 /* ---------------- hero ---------------- */
 .hero{padding:76px 0 40px;max-width:760px;}
@@ -179,9 +184,12 @@ footer{margin-top:72px;border-top:1px solid var(--line-1);padding:28px 0;color:v
 
   <div class="topbar">
     <span class="lk"><span class="mk">◈</span> WDK Whitelabel Wallet</span>
-    <span class="kill" id="kill" role="switch" aria-checked="false" tabindex="0">
-      <span>kill accent</span><span class="sw"></span>
-    </span>
+    <div class="top-actions">
+      <a class="repo-link" href="https://github.com/th3nolo/wdk-browser-extension-starter-public" target="_blank" rel="noreferrer">GitHub repo</a>
+      <span class="kill" id="kill" role="switch" aria-checked="false" tabindex="0">
+        <span>kill accent</span><span class="sw"></span>
+      </span>
+    </div>
   </div>
 
   <div class="wrap">

@@ -127,12 +127,8 @@ Direct WDK packages are pinned to `1.0.0-beta.9`, and `pnpm-workspace.yaml` over
 
 ## Supply-Chain Automation
 
-Production dependency hygiene is automated in GitHub Actions and Dependabot:
+Production dependency hygiene is enforced by GitHub Actions and maintainer-triggered update workflows:
 
-- `.github/dependabot.yml` opens weekly grouped PRs for npm and GitHub Actions updates:
-  - `@tetherto/*` in one PR
-  - WXT/Vite toolchain in one PR
-  - React, lint/test, and remaining runtime packages in separate groups
 - `.github/workflows/dependency-pr.yml` runs on dependency PRs and requires `verify:ci` plus resolved lockfile review output.
 - `.github/workflows/audit-schedule.yml` runs weekly and on demand: `smoke:lockfile`, `sync:audit-allowlist --check`, `smoke:audit`, and `smoke:wdk-deps`.
 - `.github/workflows/wdk-beta-check.yml` is available on demand for a one-shot aligned WDK bump that also refreshes the audit allowlist and opens a PR.
@@ -142,7 +138,7 @@ Production dependency hygiene is automated in GitHub Actions and Dependabot:
 
 When Tether ships a newer beta with patched transitive dependencies:
 
-1. Dependabot should open one grouped `@tetherto/*` PR, or run `node scripts/check-wdk-beta.mjs --apply` manually/on demand.
+1. Run `node scripts/check-wdk-beta.mjs --apply` manually or through `.github/workflows/wdk-beta-check.yml`.
 2. Ensure all five direct `@tetherto/wdk*` pins and the `@tetherto/wdk-wallet` override stay on the same version.
 3. Run `pnpm run smoke:wdk-deps`, `pnpm run smoke:audit`, and `pnpm run sync:audit-allowlist` so `scripts/audit-smoke.mjs` shrinks as advisory chains clear.
 4. Review the resolved lockfile diff from `pnpm run review:lockfile -- --pr-review` before merging.

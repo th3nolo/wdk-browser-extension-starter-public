@@ -58,8 +58,7 @@ jobs:
             - Refreshes `scripts/audit-smoke.mjs` and `docs/SECURITY.md` from `pnpm audit --prod`
             - Passed `pnpm run verify:ci` before opening this PR
 
-            Weekly `@tetherto/*` updates are normally handled by Dependabot grouping.
-            Use this workflow when you want a one-shot aligned bump with allowlist refresh outside the Dependabot cadence.
+            Use this workflow when you want an aligned WDK bump with allowlist refresh.
 
             Review the resolved lockfile diff and updated audit allowlist before merging.
           labels: dependencies
