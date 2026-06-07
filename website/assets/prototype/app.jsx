@@ -190,6 +190,10 @@ function App() {
 
       {/* ---------------- stage ---------------- */}
       <main className="stage">
+       <div className="stage-top">
+        <a className="stage-link" href="index.html"><Icon name="wallet" size={14} /> Overview</a>
+        <a className="stage-link" href="design-system.html"><Icon name="layers" size={14} /> Design system</a>
+       </div>
        <div className="scene">
         <div className="popup-zone">
           <div className="popup">

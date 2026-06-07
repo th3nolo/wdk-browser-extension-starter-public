@@ -82,9 +82,12 @@
   .rail-link:hover { border-color: var(--pg-acc); }
 
   /* ---------------- stage ---------------- */
-  .stage { position: relative; display: flex; padding: 48px 40px; overflow: auto;
+  .stage { position: relative; display: flex; flex-direction: column; gap: 24px; padding: 24px 40px 48px; overflow: auto;
     background: radial-gradient(circle at 20% 0%, rgba(45,212,191,.06), transparent 40%), radial-gradient(circle at 100% 100%, rgba(99,102,241,.06), transparent 45%), var(--pg); }
   .scene { display: flex; align-items: flex-start; gap: 38px; margin: auto; }
+  .stage-top { position: sticky; top: 0; z-index: 3; display: flex; align-items: center; justify-content: flex-end; gap: 10px; width: 100%; padding: 0 0 2px; }
+  .stage-link { display: inline-flex; align-items: center; gap: 8px; min-height: 38px; padding: 0 13px; border-radius: var(--r-ctl); border: 1px solid var(--pg-border-2); background: color-mix(in oklab, var(--pg-2) 92%, transparent); color: var(--pg-ink); text-decoration: none; font-size: 12.5px; font-weight: 600; box-shadow: var(--e2); backdrop-filter: blur(10px); }
+  .stage-link:hover { border-color: var(--pg-acc); }
 
   .browser { width: 560px; height: 848px; border-radius: 14px; overflow: hidden; border: 1px solid var(--pg-border-2); background: #0d1017; box-shadow: 0 40px 90px rgba(0,0,0,.5); display: flex; flex-direction: column; }
   .bchrome { display: flex; align-items: center; gap: 12px; padding: 11px 14px; background: #161a24; border-bottom: 1px solid var(--pg-border); }
@@ -125,6 +128,8 @@
   @media (max-width: 860px) {
     .proto { grid-template-columns: 1fr; }
     .rail { position: static; height: auto; border-right: 0; border-bottom: 1px solid var(--pg-border); }
+    .stage { padding: 18px 16px 28px; }
+    .stage-top { justify-content: flex-start; flex-wrap: wrap; }
   }
 
   /* ===================== PAGE NORMALIZATION ===================== */
@@ -146,7 +151,7 @@
   .browser{border:1px solid var(--line-2);box-shadow:var(--e3);}
   .popup{box-shadow:var(--e3);}
   /* focus-visible double-ring */
-  .flow:focus-visible,.preset:focus-visible,.opt:focus-visible,.bchip:focus-visible,.sw2:focus-visible,.rail-link:focus-visible{outline:none;box-shadow:0 0 0 2px var(--n-1),0 0 0 4px var(--line-3);}
+  .flow:focus-visible,.preset:focus-visible,.opt:focus-visible,.bchip:focus-visible,.sw2:focus-visible,.rail-link:focus-visible,.stage-link:focus-visible{outline:none;box-shadow:0 0 0 2px var(--n-1),0 0 0 4px var(--line-3);}
 </style>
 </head>
 <body>
