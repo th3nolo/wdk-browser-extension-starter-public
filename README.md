@@ -2,7 +2,7 @@
 
 Chrome/Brave browser extension wallet starter built with Tether Wallet Development Kit (WDK), WXT, React, and TypeScript.
 
-This starter demonstrates extension packaging, encrypted local vault storage, background-only wallet authority, popup wallet flows, origin-scoped EIP-1193/EIP-6963 dApp connections, example transaction approval paths, and WDK module registration for the configured networks.
+This starter demonstrates extension packaging, encrypted local vault storage, wallet keys confined to the background service worker, popup wallet flows, origin-scoped EIP-1193/EIP-6963 dApp connections, example transaction approval paths, and WDK module registration for the configured networks.
 
 ## White-Label Showcase
 
@@ -19,7 +19,7 @@ Demo video: [`docs/showcase-video.mp4`](docs/showcase-video.mp4) (2m24s, 1920x10
 | Area | Implementation |
 | --- | --- |
 | Chrome/Brave extension wallet | Manifest V3 extension built with WXT |
-| Clean popup UI | React popup in `src/ui` |
+| Popup UI | React popup in `src/ui` |
 | Background scripts | `entrypoints/background.ts` runs the wallet controller |
 | Message passing | content/inpage/background bridge in `entrypoints/content.ts` and `entrypoints/inpage.ts` |
 | Secure storage | AES-256-GCM vault with PBKDF2-SHA256, stored in `browser.storage.local` |
