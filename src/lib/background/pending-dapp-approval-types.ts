@@ -18,6 +18,8 @@ export type StoredDappApproval = {
   walletId: string;
   dedupeKey: string;
   expiresAt: number;
+  executionState?: "claimed" | "executing" | "uncertain";
+  executionOutcome?: DappApprovalOutcome;
 };
 
 export type StoredPendingSignature = Omit<DappSignatureRequest, "kind"> & StoredDappApproval & {

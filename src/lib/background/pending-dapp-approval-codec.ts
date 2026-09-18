@@ -21,7 +21,7 @@ export function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 export function pruneExpired<TApproval extends StoredDappApproval>(approvals: TApproval[], now = Date.now()): TApproval[] {
-  return approvals.filter((approval) => approval.expiresAt > now);
+  return approvals.filter((approval) => approval.executionState !== undefined || approval.expiresAt > now);
 }
 
 function parseStoredDappApprovalBase(input: unknown): StoredDappApproval | undefined {
@@ -32,6 +32,9 @@ function parseStoredDappApprovalBase(input: unknown): StoredDappApproval | undef
     || typeof input.walletId !== "string"
     || typeof input.dedupeKey !== "string"
     || typeof input.expiresAt !== "number"
+    || (input.executionState !== undefined && input.executionState !== "claimed"
+      && input.executionState !== "executing" && input.executionState !== "uncertain")
+    || (input.executionOutcome !== undefined && !parseStoredOutcome(input.executionOutcome))
   ) return undefined;
   return input as StoredDappApproval;
 }
