@@ -7,37 +7,28 @@ on:
       - pnpm-lock.yaml
       - pnpm-workspace.yaml
 
+permissions:
+  contents: read
+
 jobs:
   verify:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
     steps:
-      - name: Checkout
-        uses: actions/checkout@v6
+      - name: Checkout event commit
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
+          ref: ${{ github.sha }}
           fetch-depth: 0
+          persist-credentials: false
 
-      - name: Setup Node
-        uses: actions/setup-node@v6
-        with:
-          node-version: 22
-
-      - name: Enable pnpm
-        run: |
-          corepack enable
-          corepack prepare pnpm@11.0.9 --activate
-
-      - name: Setup pnpm cache
-        uses: actions/setup-node@v6
-        with:
-          node-version: 22
-          cache: pnpm
-          cache-dependency-path: pnpm-lock.yaml
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+      - name: Release dependency gate
+        uses: ./.github/actions/dependency-gate
 
       - name: Fetch base branch
-        run: git fetch origin "${{ github.base_ref }}"
+        env:
+          GITHUB_BASE_REF: ${{ github.base_ref }}
+        run: git fetch origin "$GITHUB_BASE_REF"
 
       - name: Lockfile PR policy
         env:
@@ -48,6 +39,3 @@ jobs:
         env:
           GITHUB_BASE_REF: ${{ github.base_ref }}
         run: pnpm run review:lockfile -- --pr-review
-
-      - name: Run CI verifier
-        run: pnpm run verify:ci
