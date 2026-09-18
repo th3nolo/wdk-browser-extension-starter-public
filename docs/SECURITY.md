@@ -117,13 +117,19 @@ See `docs/DAPP_PRODUCTION_READINESS.md` for the larger provider, calldata decodi
 
 ## Dependency Audit
 
-Current `pnpm audit --prod --json` production audit findings are tracked by `pnpm run smoke:audit`. The smoke check fails on critical vulnerabilities, undocumented advisory names, or undocumented direct vulnerable dependencies; it passes only when findings match this documented starter risk profile.
+Run `pnpm run smoke:audit` for production dependencies or `pnpm run smoke:audit -- --all` for the complete locked dependency graph. Both enforce `scripts/lib/audit-policy.mjs`; all critical findings and every unreviewed advisory block the gate. The companion report parser validates audit availability and completeness before policy evaluation.
 
-Run `pnpm run smoke:audit` before publishing a fork, sharing a release build, or changing dependencies. The allowlist documents currently accepted starter risks and should shrink as WDK/toolchain advisories are patched. The smoke check fails on undocumented direct vulnerable dependencies, undocumented advisory names, or critical findings.
+Exceptions require an exact GitHub advisory ID (`advisoryId`), exact npm `package`, an explicit array of installed `versions` (no ranges), a documented `rationale`, accountable `owner`, and `expiresAt` in UTC `YYYY-MM-DDTHH:mm:ssZ`. Every affected installed version must match. Expiry is exclusive: at the expiry instant the exception fails, even if it is no longer used. A new advisory on an already reviewed package requires a new review; critical findings cannot be excepted. The rationale must record reachability, impact, mitigations, and the upgrade/removal plan. A maintainer must review these fields in a focused change; an audit response is not risk acceptance.
+
+The reviewed exception registry is intentionally empty. The initial public import (`5e014e2`) allowed package names `elliptic` and `ws` with generic starter-risk wording, but recorded no advisory-specific review owner or expiry. That evidence does not authorize carrying the allowances forward.
+
+On 18 September 2026, the unchanged lockfile's production audit returned 17 advisories (1 low, 13 moderate, 3 high) across `elliptic@6.6.1`, `ws@8.17.1`, `form-data@4.0.5`, `protobufjs@7.6.1`, `axios@1.16.1`, and `@opentelemetry/core@2.7.1`. The high findings were `GHSA-96hv-2xvq-fx4p` (ws), `GHSA-hmw2-7cc7-3qxx` (form-data), and `GHSA-gcfj-64vw-6mp9` (axios). They remain unresolved and blocking, pending reachability analysis and a reviewed dependency repair or explicit scoped acceptance. This is a dated registry snapshot, not a claim of application exploitability or a permanent advisory count. The 7 September scheduled job logged an allowlist mismatch without preserving the report, so its exact advisory set cannot be reconstructed from that log alone.
+
+`pnpm run sync:audit-allowlist` is retained as a compatibility command. Both default and `--check` modes perform the same read-only gate; neither writes source, documentation, or exceptions. Dependency update automation must stop for manual review when new findings appear. Policy regressions run with `node --test scripts/lib/audit-policy.test.mjs`.
 
 Build tooling (`wxt`, `@vitejs/plugin-react`, and their transitive toolchain) is kept in `devDependencies` so it stays out of the production audit surface.
 
-Direct WDK packages are pinned to `1.0.0-beta.9`, and `pnpm-workspace.yaml` overrides force nested `@tetherto/wdk-wallet` to the same baseline so chain modules do not drift across beta.7-beta.8 copies. The same workspace config enforces pnpm minimum-release-age and trust-downgrade policy; its `trustPolicyExclude` entries are temporary version-specific exceptions for packages that were already present in the pre-migration lockfile and older than 72 hours. Address-validation dependencies (`ethers`, `bitcoinjs-lib`, `bech32`, `@solana/addresses`) are pinned as direct production dependencies aligned with WDK transitive versions. `pnpm run smoke:wdk-deps` verifies the alignment after install, and `pnpm run smoke:wdk-surface` prevents TON, Tron, gasless, ERC-4337, or protocol-module runtime exposure unless the package, browser, and audit coverage is intentionally added. `pnpm run sync:audit-allowlist` refreshes `scripts/audit-smoke.mjs` when the production audit surface changes. `wxt` is kept in `devDependencies` so build tooling stays out of the production audit surface.
+Direct WDK packages are pinned to `1.0.0-beta.9`, and `pnpm-workspace.yaml` overrides force nested `@tetherto/wdk-wallet` to the same baseline so chain modules do not drift across beta.7-beta.8 copies. The same workspace config enforces pnpm minimum-release-age and trust-downgrade policy; its `trustPolicyExclude` entries are temporary version-specific exceptions for packages that were already present in the pre-migration lockfile and older than 72 hours. Address-validation dependencies (`ethers`, `bitcoinjs-lib`, `bech32`, `@solana/addresses`) are pinned as direct production dependencies aligned with WDK transitive versions. `pnpm run smoke:wdk-deps` verifies the alignment after install, and `pnpm run smoke:wdk-surface` prevents TON, Tron, gasless, ERC-4337, or protocol-module runtime exposure unless the package, browser, and audit coverage is intentionally added. `pnpm run sync:audit-allowlist` checks reviewed exceptions without modifying them. `wxt` is kept in `devDependencies` so build tooling stays out of the production audit surface.
 
 ## Supply-Chain Automation
 
@@ -131,7 +137,7 @@ Production dependency hygiene is enforced by GitHub Actions and maintainer-trigg
 
 - `.github/workflows/dependency-pr.yml` runs on dependency PRs and requires `verify:ci` plus resolved lockfile review output.
 - `.github/workflows/audit-schedule.yml` runs weekly and on demand: `smoke:lockfile`, `sync:audit-allowlist --check`, `smoke:audit`, and `smoke:wdk-deps`.
-- `.github/workflows/wdk-beta-check.yml` is available on demand for a one-shot aligned WDK bump that also refreshes the audit allowlist and opens a PR.
+- `.github/workflows/wdk-beta-check.yml` is available on demand for a one-shot aligned WDK bump that checks the audit policy before opening a PR; unresolved findings stop the workflow.
 - CI enforces lockfile integrity on every push/PR: `pnpm run smoke:lockfile` verifies `pnpm-lock.yaml` matches `package.json`, pull requests that change `package.json` must also update `pnpm-lock.yaml`, and `pnpm run review:lockfile -- --pr-review` prints resolved version diffs for security review.
 
 ### WDK upgrade cadence
@@ -140,7 +146,7 @@ When Tether ships a newer beta with patched transitive dependencies:
 
 1. Run `node scripts/check-wdk-beta.mjs --apply` manually or through `.github/workflows/wdk-beta-check.yml`.
 2. Ensure all five direct `@tetherto/wdk*` pins and the `@tetherto/wdk-wallet` override stay on the same version.
-3. Run `pnpm run smoke:wdk-deps`, `pnpm run smoke:audit`, and `pnpm run sync:audit-allowlist` so `scripts/audit-smoke.mjs` shrinks as advisory chains clear.
+3. Run `pnpm run smoke:wdk-deps`, `pnpm run smoke:audit`, and `pnpm run sync:audit-allowlist` to identify unresolved findings; remove obsolete reviewed exceptions manually as advisory chains clear.
 4. Review the resolved lockfile diff from `pnpm run review:lockfile -- --pr-review` before merging.
 
 Local maintainer commands:
