@@ -63,4 +63,6 @@ jobs:
           path: |
             .output/chrome-mv3
             .output/*.zip
+          # The validated build paths are inside the hidden .output directory.
+          include-hidden-files: true
           if-no-files-found: error
