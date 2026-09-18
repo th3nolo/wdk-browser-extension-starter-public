@@ -502,17 +502,22 @@ describe("background wallet controller - provider methods and transactions", () 
     await createSession("wallet-1", "test seed phrase");
     const controller = createBackgroundWalletController();
 
-    void controller.handleMessage({
+    const signature = controller.handleMessage({
       type: "DAPP_REQUEST",
       method: "personal_sign",
       params: ["Sign in to WDK demo", "0x9858EfFD232B4033E47d90003D41EC34EcaEda94"]
     }, dappSender("https://dapp.example"));
 
     const state = await waitForPendingSignature(controller);
+    const cancelled = expect(signature).rejects.toThrow("Approval cancelled because the site was disconnected");
     await controller.handleMessage({ type: "REVOKE_DAPP", origin: "https://dapp.example" }, POPUP_SENDER);
+    await cancelled;
 
     await expect(controller.handleMessage({ type: "APPROVE_SIGNATURE", id: state.pendingSignatures[0].id }, POPUP_SENDER))
-      .rejects.toThrow("Site is not connected to this wallet");
+      .rejects.toThrow("Approval request was not found, expired or already resolved");
+    expect(signDappSignatureForApproval).not.toHaveBeenCalled();
+    const afterRevoke = await controller.handleMessage({ type: "GET_STATE" }, POPUP_SENDER) as PopupState;
+    expect(afterRevoke.pendingSignatures).toHaveLength(0);
   });
 
   it("queues, approves, and persists eth_sendTransaction requests", async () => {

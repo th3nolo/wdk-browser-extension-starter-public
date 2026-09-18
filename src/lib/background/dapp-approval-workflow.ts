@@ -2,9 +2,10 @@ import { CHAIN_BY_ID } from "../chains";
 import { formatDappTransactionValue, type ParsedDappEvmTransaction } from "../dapp-transaction";
 import type { ChainId, DappSignatureRequest, DappTransactionRequest } from "../types";
 import { readStore, updateStore, type StoredState } from "../storage/store";
+import { getSession } from "../session/session";
 import { assertPendingRequestStillConnected, type ConnectedDappSession } from "./connected-sites";
+import { claimPendingDappApproval, executeClaimedDappApproval, failClaimedDappApproval, UNCERTAIN_APPROVAL_MESSAGE } from "./pending-dapp-approvals";
 import {
-  getPendingDappTransaction,
   initPendingDappTransactions,
   listPendingDappTransactions,
   parsedTransactionForApproval,
@@ -14,7 +15,6 @@ import {
   type StoredPendingDappTransaction
 } from "./pending-dapp-transactions";
 import {
-  getPendingSignature,
   initPendingSignatures,
   listPendingSignatures,
   rejectPendingSignature,
@@ -36,6 +36,8 @@ type PendingDappApprovalDecisionRequest = {
   chain?: ChainId;
 };
 
+type ExecutableApprovalRequest = StoredPendingSignature | StoredPendingDappTransaction;
+
 type ApprovalDecisionContext<TRequest extends PendingDappApprovalDecisionRequest> = {
   request: TRequest;
   connected: ConnectedDappSession;
@@ -49,10 +51,10 @@ type ApprovalStoreEffect<TRequest extends PendingDappApprovalDecisionRequest, TR
   now: string;
 };
 
-type DappApprovalDecision<TRequest extends PendingDappApprovalDecisionRequest, TResult, TListRequest> = {
+type DappApprovalDecision<TRequest extends ExecutableApprovalRequest, TResult, TListRequest> = {
   label: "Signature" | "Transaction";
   listRequests: (walletId?: string) => TListRequest[];
-  getRequest: (id: string) => TRequest | undefined;
+  claim: (id: string) => Promise<TRequest>;
   execute: (context: ApprovalDecisionContext<TRequest>) => Promise<TResult>;
   settle: (id: string, result: TResult) => Promise<TRequest>;
   reject: (id: string) => Promise<TRequest>;
@@ -68,7 +70,7 @@ type TransactionApprovalResult = {
 const signatureApprovalDecision: DappApprovalDecision<StoredPendingSignature, string, DappSignatureRequest> = {
   label: "Signature",
   listRequests: listPendingSignatures,
-  getRequest: getPendingSignature,
+  claim: (id) => claimPendingDappApproval(id, "signature"),
   execute: ({ request, connected, store }) => signDappSignatureForApproval(connected.walletId, connected.chain, request, store),
   settle: resolvePendingSignature,
   reject: rejectPendingSignature,
@@ -78,7 +80,7 @@ const signatureApprovalDecision: DappApprovalDecision<StoredPendingSignature, st
 const transactionApprovalDecision: DappApprovalDecision<StoredPendingDappTransaction, TransactionApprovalResult, DappTransactionRequest> = {
   label: "Transaction",
   listRequests: listPendingDappTransactions,
-  getRequest: getPendingDappTransaction,
+  claim: (id) => claimPendingDappApproval(id, "transaction"),
   execute: async ({ request, connected, store }) => {
     const parsed = parsedTransactionForApproval(request);
     const txHash = await submitDappTransactionForApproval(connected.walletId, request.chain, request.accountIndex, parsed, store);
@@ -113,21 +115,40 @@ function touchApprovedDappSite(state: StoredState, request: PendingDappApprovalD
   };
 }
 
-async function approveDappDecision<TRequest extends PendingDappApprovalDecisionRequest, TResult>(
+async function approveDappDecision<TRequest extends ExecutableApprovalRequest, TResult>(
   id: string,
   decision: DappApprovalDecision<TRequest, TResult, unknown>
 ): Promise<void> {
-  const pending = decision.getRequest(id);
-  if (!pending) throw new Error(`${decision.label} request was not found or already resolved`);
-  const store = await readStore();
-  const connected = await assertPendingRequestStillConnected(pending, decision.label);
-  const result = await decision.execute({ request: pending, connected, store });
-  const request = await decision.settle(id, result);
-  const now = new Date().toISOString();
-  await updateStore((state) => {
-    const touched = touchApprovedDappSite(state, request, now);
-    return decision.reduceStore?.(touched, { request, connected, result, now }) ?? touched;
-  });
+  const pending = await decision.claim(id);
+  try {
+    const session = getSession();
+    const store = await readStore();
+    const connected = await assertPendingRequestStillConnected(pending, decision.label);
+    const result = await executeClaimedDappApproval(pending, () => {
+      if (!session || session.walletId !== pending.walletId || getSession() !== session) {
+        throw new Error("Wallet session changed before approval execution");
+      }
+    }, () => decision.execute({ request: pending, connected, store }));
+    const request = await decision.settle(id, result);
+    const now = new Date().toISOString();
+    await updateStore((state) => {
+      // A concurrent wallet deletion must not recreate its transaction history.
+      if (!state.wallets.some((wallet) => wallet.id === request.walletId)) return state;
+      const touched = touchApprovedDappSite(state, request, now);
+      return decision.reduceStore?.(touched, { request, connected, result, now }) ?? touched;
+    });
+  } catch (error) {
+    let failure = error;
+    try {
+      await failClaimedDappApproval(pending);
+    } catch (persistenceError) {
+      failure = new AggregateError([error, persistenceError], "Approval failure could not be saved");
+    }
+    if (pending.executionState === "uncertain" && !pending.executionOutcome) {
+      throw new Error(UNCERTAIN_APPROVAL_MESSAGE, { cause: failure });
+    }
+    throw failure;
+  }
 }
 
 export async function approveDappSignature(id: string): Promise<void> {

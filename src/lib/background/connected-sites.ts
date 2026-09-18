@@ -15,6 +15,7 @@ import {
 } from "./dapp-provider-events";
 import { closeApprovalWindowIfOpen, openApprovalWindow } from "./approval-window";
 import { connectedAccountForWallet } from "./wallet-execution";
+import { rejectPendingDappApprovalsForWallet } from "./pending-dapp-approvals";
 
 // In-flight eth_requestAccounts calls park here until the user approves or
 // rejects the connection in the popup. The service worker stays alive while the
@@ -236,6 +237,9 @@ export async function switchDappEthereumChain(origin: string, requestedChainId: 
   const connected = await requireConnectedDappSession(origin);
   const walletId = connected.walletId;
   const chainIdHex = toHexChainId(requestedChainId);
+  if (connectionEvmChainId(connected.connection) !== requestedChainId) {
+    await rejectPendingDappApprovalsForWallet(walletId, undefined, "Approval cancelled because the network changed", origin);
+  }
   let previousChainId = DEFAULT_EVM_NUMERIC_CHAIN_ID;
   await updateStore((state) => {
     const connection = state.connectedSites.find((site) => site.origin === origin && site.walletId === walletId);
@@ -291,6 +295,7 @@ export async function approveDappConnection(origin: string, accountIndexes: numb
   const sortedUnique = [...new Set(accountIndexes)].sort((a, b) => a - b);
   const orderedIndexes = [primaryIndex, ...sortedUnique.filter((index) => index !== primaryIndex)];
   const now = new Date().toISOString();
+  await rejectPendingDappApprovalsForWallet(walletId, undefined, "Approval cancelled because the connected accounts changed", normalized);
   await updateStore((state) => ({
     ...state,
     pendingConnections: state.pendingConnections.filter(
@@ -341,6 +346,7 @@ export async function revokeDappConnection(origin: string): Promise<void> {
   const normalized = normalizedOrigin(origin);
   const store = await readStore();
   const walletId = store.activeWalletId;
+  await rejectPendingDappApprovalsForWallet(walletId, undefined, "Approval cancelled because the site was disconnected", normalized);
   await updateStore((state) => ({ ...state, connectedSites: state.connectedSites.filter((site) => !(site.origin === normalized && site.walletId === walletId)) }));
   await broadcastDappSessionClosed(normalized);
 }
