@@ -133,12 +133,17 @@ Direct WDK packages are pinned to `1.0.0-beta.9`, and `pnpm-workspace.yaml` over
 
 ## Supply-Chain Automation
 
-Production dependency hygiene is enforced by GitHub Actions and maintainer-triggered update workflows:
+Runtime and build dependency hygiene is enforced by GitHub Actions and maintainer-triggered update workflows:
 
-- `.github/workflows/dependency-pr.yml` runs on dependency PRs and requires `verify:ci` plus resolved lockfile review output.
-- `.github/workflows/audit-schedule.yml` runs weekly and on demand: `smoke:lockfile`, `sync:audit-allowlist --check`, `smoke:audit`, and `smoke:wdk-deps`.
+- `.github/actions/dependency-gate/action.yml` checks the exact event commit and unchanged tracked checkout, performs a frozen install, and requires lockfile integrity, the complete `smoke:audit -- --all` policy evaluation, and WDK alignment.
+- `.github/workflows/ci.yml` runs the shared gate before verification and packaging on PRs, `master` pushes, tag pushes, and manual runs. Artifact upload requires success; failed or skipped checks do not publish artifacts.
+- `.github/workflows/pages.yml` requires a successful read-only dependency job before uploading or deploying `website/` from the same event commit.
+- `.github/workflows/dependency-pr.yml` runs the shared gate on dependency PRs plus manifest/lockfile PR policy and resolved lockfile review. Full verification remains mandatory in CI.
+- `.github/workflows/audit-schedule.yml` runs the same complete gate weekly and on demand; a scheduled success never substitutes for the release event's audit.
 - `.github/workflows/wdk-beta-check.yml` is available on demand for a one-shot aligned WDK bump that checks the audit policy before opening a PR; unresolved findings stop the workflow.
 - CI enforces lockfile integrity on every push/PR: `pnpm run smoke:lockfile` verifies `pnpm-lock.yaml` matches `package.json`, pull requests that change `package.json` must also update `pnpm-lock.yaml`, and `pnpm run review:lockfile -- --pr-review` prints resolved version diffs for security review.
+
+`verify:ci` runs dependency regression tests and the complete audit before creating a ZIP. See the [release gate and required GitHub settings](../README.md#release-dependency-gate) for the enforced paths and settings outside source control. Branch protection and deployment environment controls are not configured by these source changes.
 
 ### WDK upgrade cadence
 
