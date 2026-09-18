@@ -74,6 +74,20 @@ test("CI artifact path requires gate and verifier success for PR, push, tag and 
   assert.doesNotMatch(ci, /always\(|continue-on-error|paths:/);
 });
 
+test("artifact upload discovers hidden build output without widening the path allowlist", () => {
+  const ci = read(".github/workflows/ci.yml");
+  const upload = ci.slice(ci.indexOf("      - name: Upload extension package"));
+  assert.match(upload, /^          include-hidden-files: true\r?$/m);
+  const lines = upload.split(/\r?\n/);
+  const pathIndex = lines.indexOf("          path: |");
+  assert.notEqual(pathIndex, -1);
+  const paths = lines.slice(pathIndex + 1)
+    .filter((line) => line.startsWith("            "))
+    .map((line) => line.trim());
+  assert.deepEqual(paths, [".output/chrome-mv3", ".output/*.zip"]);
+  assert.match(upload, /if-no-files-found: error/);
+});
+
 test("publishing waits on an unconditionally executed gate for the same SHA with read-only audit permissions", () => {
   const pages = read(".github/workflows/pages.yml");
   assert.match(pages, /dependencies:\s+runs-on: ubuntu-24.04\s+steps:/);

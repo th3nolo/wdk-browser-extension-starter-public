@@ -1,4 +1,4 @@
-import type { IWalletAccountWithProtocols } from "@tetherto/wdk";
+import type { WdkAccount as WdkAccountSurface } from "@tetherto/wdk";
 
 /** WDK account surface used by this extension's wallet adapter. */
 export type WdkEvmTransaction = {
@@ -11,7 +11,7 @@ export type WdkEvmTransaction = {
 };
 
 export type WdkAccount = Pick<
-  IWalletAccountWithProtocols,
+  WdkAccountSurface,
   "getAddress" | "getBalance" | "getTokenBalance" | "transfer" | "sign"
 > & {
   sendTransaction: (tx: WdkEvmTransaction) => Promise<{ hash: string }>;

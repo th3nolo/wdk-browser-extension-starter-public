@@ -97,4 +97,4 @@ Submitted transactions are stored in extension-local storage with their chain, a
 
 ## Test Performance
 
-Vitest defaults to the Node environment for most unit tests; UI and inpage provider tests opt into `jsdom` via `@vitest-environment` comments. `pool: "forks"` in `vitest.config.ts` keeps collection parallelizable. Keep approval, send, RPC, and multi-wallet behavior covered when changing those flows.
+Vitest defaults to the Node environment for most unit tests; UI and inpage provider tests opt into `jsdom` via `@vitest-environment` comments. `pool: "forks"` with two workers in `vitest.config.ts` bounds CPU contention during PBKDF2 and approval timing tests without extending timeouts. Keep approval, send, RPC, and multi-wallet behavior covered when changing those flows.

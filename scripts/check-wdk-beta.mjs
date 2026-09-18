@@ -1,6 +1,7 @@
 import { readFileSync, writeFileSync, appendFileSync } from "node:fs";
 import { spawnSync } from "node:child_process";
 import { resolve } from "node:path";
+import { assertWdkManifest } from "./lib/wdk-dependencies.mjs";
 
 const root = resolve(".");
 const apply = process.argv.includes("--apply");
@@ -106,6 +107,9 @@ if (!apply) {
   process.exit(0);
 }
 
+// The upstream modules no longer share a release sequence. A bulk candidate
+// must match the explicitly reviewed matrix before any file or install changes.
+assertWdkManifest(Object.fromEntries(directPackages.map((name) => [name, candidate])));
 for (const name of directPackages) {
   pkg.dependencies[name] = candidate;
 }
