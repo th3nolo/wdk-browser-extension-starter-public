@@ -1,5 +1,5 @@
 /** @vitest-environment jsdom */
-import { afterEach, expect, it, vi } from "vitest";
+import { afterEach, beforeAll, expect, it, vi } from "vitest";
 import { installInpageProvider } from "../provider/inpage";
 import { createSession } from "../session/session";
 import { createControllerTestHarness, dappSender, POPUP_SENDER } from "./controller-test-harness";
@@ -19,6 +19,19 @@ vi.mock("./wallet-execution", () => ({
 }));
 
 const harness = createControllerTestHarness();
+let background: typeof import("../../../entrypoints/background");
+let content: typeof import("../../../entrypoints/content");
+
+beforeAll(async () => {
+  // Load/transform entrypoints during setup, before the behavioral deadline.
+  // Their main functions still execute against the per-test browser harness.
+  vi.stubGlobal("defineBackground", (main: () => void) => main);
+  vi.stubGlobal("defineContentScript", (definition: unknown) => definition);
+  [background, content] = await Promise.all([
+    import("../../../entrypoints/background"),
+    import("../../../entrypoints/content")
+  ]);
+});
 
 afterEach(() => {
   resetPendingDappTransactionsForTests();
@@ -40,9 +53,6 @@ it("returns one fake submission through the actual inpage, content and backgroun
   const runtimeListeners: RuntimeListener[] = [];
   Object.assign(browser.runtime, { onMessage: { addListener: (listener: RuntimeListener) => runtimeListeners.push(listener) } });
   Object.assign(browser, { alarms: { create: vi.fn(async () => undefined), onAlarm: { addListener: vi.fn() } } });
-  vi.stubGlobal("defineBackground", (main: () => void) => main);
-  vi.stubGlobal("defineContentScript", (definition: unknown) => definition);
-  const background = await import("../../../entrypoints/background");
   (background.default as unknown as () => void)();
   const sendMessage = (message: unknown, sender: Browser.runtime.MessageSender) => new Promise<unknown>((resolve) => {
     expect(runtimeListeners[0](message, sender, resolve)).toBe(true);
@@ -57,7 +67,6 @@ it("returns one fake submission through the actual inpage, content and backgroun
     window.dispatchEvent(new MessageEvent("message", { source: window, data }));
   });
   const listeners = vi.spyOn(window, "addEventListener");
-  const content = await import("../../../entrypoints/content");
   (content.default as unknown as { main: () => void }).main();
   const script = document.querySelector<HTMLScriptElement>("script[data-wdk-bridge-token]");
   expect(script).not.toBeNull();

@@ -26,7 +26,7 @@ const wdkState = vi.hoisted(() => ({
 }));
 
 vi.mock("@tetherto/wdk", () => ({
-  default: vi.fn().mockImplementation(() => {
+  default: vi.fn().mockImplementation(function () {
     const instance = {
       registerWallet: vi.fn((key: string, _manager: unknown, options: unknown) => {
         wdkState.registrations.push({ key, options });

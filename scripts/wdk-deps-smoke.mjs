@@ -1,24 +1,20 @@
 import { readFileSync } from "node:fs";
 import { spawnSync } from "node:child_process";
 import { resolve } from "node:path";
+import { WDK_DEPENDENCIES, WDK_WALLET_VERSION, assertWdkManifest, assertWdkSourceDependencies } from "./lib/wdk-dependencies.mjs";
 
 const root = resolve(".");
-const directPackages = [
-  "@tetherto/wdk",
-  "@tetherto/wdk-wallet-btc",
-  "@tetherto/wdk-wallet-evm",
-  "@tetherto/wdk-wallet-solana",
-  "@tetherto/wdk-wallet-spark"
-];
+const directPackages = Object.keys(WDK_DEPENDENCIES);
 
 const pkg = JSON.parse(readFileSync(resolve(root, "package.json"), "utf8"));
-const WDK_BASELINE = pkg.dependencies?.["@tetherto/wdk"];
-if (!WDK_BASELINE) {
-  throw new Error("package.json must pin @tetherto/wdk to the shared WDK baseline version.");
-}
-const mismatchedDirect = directPackages.filter((name) => pkg.dependencies?.[name] !== WDK_BASELINE);
-if (mismatchedDirect.length) {
-  throw new Error(`Direct WDK packages must be pinned to ${WDK_BASELINE}: ${mismatchedDirect.join(", ")}`);
+const WDK_BASELINE = WDK_WALLET_VERSION;
+assertWdkManifest(pkg.dependencies);
+for (const name of directPackages) {
+  const installed = JSON.parse(readFileSync(resolve(root, "node_modules", name, "package.json"), "utf8"));
+  if (installed.name !== name || installed.version !== WDK_DEPENDENCIES[name]) {
+    throw new Error(`${name} installed version differs from the reviewed WDK matrix`);
+  }
+  assertWdkSourceDependencies(name, installed.dependencies);
 }
 
 const workspaceConfig = readFileSync(resolve(root, "pnpm-workspace.yaml"), "utf8");

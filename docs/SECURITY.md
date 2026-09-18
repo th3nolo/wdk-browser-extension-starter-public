@@ -110,7 +110,7 @@ Before using with real funds:
 - Add per-chain testnet fixtures and integration tests.
 - Cross-check the WYSIWYS digest verification implementation in `docs/WYSIWYS_VERIFICATION.md` against external tools such as `clearsig` / `safe-hash-rs` and get audit review before production or real-funds use.
 - Pin and audit WDK dependency versions.
-- Align direct `@tetherto/wdk*` packages to one beta and override nested `@tetherto/wdk-wallet` to the same baseline.
+- Review each independently versioned `@tetherto/wdk*` module against the shared base-wallet constraint; enforce the exact compatibility matrix in `scripts/lib/wdk-dependencies.mjs`.
 - Add RPC failover and rate-limit handling.
 
 See `docs/DAPP_PRODUCTION_READINESS.md` for the larger provider, calldata decoding, simulation, protocol-module, and real-dApp harness paths that teams can extend for deeper protocol flows.
@@ -123,13 +123,19 @@ Exceptions require an exact GitHub advisory ID (`advisoryId`), exact npm `packag
 
 The reviewed exception registry is intentionally empty. The initial public import (`5e014e2`) allowed package names `elliptic` and `ws` with generic starter-risk wording, but recorded no advisory-specific review owner or expiry. That evidence does not authorize carrying the allowances forward.
 
-On 18 September 2026, the unchanged lockfile's production audit returned 17 advisories (1 low, 13 moderate, 3 high) across `elliptic@6.6.1`, `ws@8.17.1`, `form-data@4.0.5`, `protobufjs@7.6.1`, `axios@1.16.1`, and `@opentelemetry/core@2.7.1`. The high findings were `GHSA-96hv-2xvq-fx4p` (ws), `GHSA-hmw2-7cc7-3qxx` (form-data), and `GHSA-gcfj-64vw-6mp9` (axios). They remain unresolved and blocking, pending reachability analysis and a reviewed dependency repair or explicit scoped acceptance. This is a dated registry snapshot, not a claim of application exploitability or a permanent advisory count. The 7 September scheduled job logged an allowlist mismatch without preserving the report, so its exact advisory set cannot be reconstructed from that log alone.
+On 18 September 2026, the lockfile at `9063cf99` returned 17 production and 59 total advisories, including critical Vitest and shell-quote findings. The replacement lockfile returned zero advisories in the complete graph. These are dated registry results, not a claim of permanent vulnerability freedom or application exploitability; the release gate must repeat the full audit for each event commit. The reviewed exception registry remains empty.
+
+The Bitcoin upgrade removes `bitcoinjs-message -> secp256k1 -> elliptic` at its upstream source. [GHSA-848j-6mx2-7j84](https://github.com/advisories/GHSA-848j-6mx2-7j84) has no published patched elliptic version; an invented `6.6.2` override would not fix it. WDK BTC beta.14 instead uses `@bitcoinerlab/btcmessage@4.0.1` and `bitcoinjs-lib@7.0.1`. EVM beta.17 uses `ethers@6.17.0` with patched `ws@8.21.0`. Spark beta.23 removes the old Sparkscan/axios path. Direct address-validation pins follow those upstream versions. Derivation and signature golden vectors remain unchanged.
+
+The version-specific package extension for `@bitcoinerlab/descriptors@3.1.7` supplies `@noble/hashes@2.2.0` to satisfy descriptors-core's declared `^2.0.1` peer. It does not relax the peer range or change the application's `@noble/hashes@1.8.0` pin.
+
+Vitest is pinned to `4.1.11`, covering both [GHSA-5xrq-8626-4rwp](https://github.com/advisories/GHSA-5xrq-8626-4rwp) and the later [GHSA-82fw-gwwq-j7x9](https://github.com/advisories/GHSA-82fw-gwwq-j7x9); upgrading only to 3.2.6 would leave the latter finding. Exact workspace overrides constrain vulnerable toolchain/transitive families: Vite 6/8, esbuild under WXT, PostCSS/nanoid, brace-expansion 1/5, js-yaml 4, undici 7, protobufjs 7, and OpenTelemetry core 2. The legacy browser runner needs consumer-specific shell-quote, tmp, adm-zip, and uuid overrides. The uuid 11 CommonJS `v4` export and adm-zip archive API are retained for those consumers; no runtime crypto implementation is aliased. All resolved package identities, release timestamps (at least 72 hours old), registry tarball sources, and lockfile integrity values were checked before frozen installation.
 
 `pnpm run sync:audit-allowlist` is retained as a compatibility command. Both default and `--check` modes perform the same read-only gate; neither writes source, documentation, or exceptions. Dependency update automation must stop for manual review when new findings appear. Policy regressions run with `node --test scripts/lib/audit-policy.test.mjs`.
 
 Build tooling (`wxt`, `@vitejs/plugin-react`, and their transitive toolchain) is kept in `devDependencies` so it stays out of the production audit surface.
 
-Direct WDK packages are pinned to `1.0.0-beta.9`, and `pnpm-workspace.yaml` overrides force nested `@tetherto/wdk-wallet` to the same baseline so chain modules do not drift across beta.7-beta.8 copies. The same workspace config enforces pnpm minimum-release-age and trust-downgrade policy; its `trustPolicyExclude` entries are temporary version-specific exceptions for packages that were already present in the pre-migration lockfile and older than 72 hours. Address-validation dependencies (`ethers`, `bitcoinjs-lib`, `bech32`, `@solana/addresses`) are pinned as direct production dependencies aligned with WDK transitive versions. `pnpm run smoke:wdk-deps` verifies the alignment after install, and `pnpm run smoke:wdk-surface` prevents TON, Tron, gasless, ERC-4337, or protocol-module runtime exposure unless the package, browser, and audit coverage is intentionally added. `pnpm run sync:audit-allowlist` checks reviewed exceptions without modifying them. `wxt` is kept in `devDependencies` so build tooling stays out of the production audit surface.
+The reviewed WDK matrix uses `@tetherto/wdk@1.0.0-beta.17`, BTC beta.14, EVM beta.17, Solana beta.13, and Spark beta.23, with one nested `@tetherto/wdk-wallet@1.0.0-beta.17`. Each chain module declares that exact base-wallet version upstream; the WDK orchestrator declares `^1.0.0-beta.15`, which includes it. Matching module beta numbers would contradict those source constraints. `scripts/lib/wdk-dependencies.mjs` records the matrix, and `smoke:wdk-deps` checks direct manifest pins, installed identities/versions, upstream base-wallet constraints, the workspace override, and the resolved single base-wallet version. The workspace minimum-release-age and trust-downgrade policies and existing provenance exclusions remain intact. `smoke:wdk-surface` still blocks unreviewed chain/protocol exposure, and `sync:audit-allowlist` remains read-only.
 
 ## Supply-Chain Automation
 
@@ -140,7 +146,7 @@ Runtime and build dependency hygiene is enforced by GitHub Actions and maintaine
 - `.github/workflows/pages.yml` requires a successful read-only dependency job before uploading or deploying `website/` from the same event commit.
 - `.github/workflows/dependency-pr.yml` runs the shared gate on dependency PRs plus manifest/lockfile PR policy and resolved lockfile review. Full verification remains mandatory in CI.
 - `.github/workflows/audit-schedule.yml` runs the same complete gate weekly and on demand; a scheduled success never substitutes for the release event's audit.
-- `.github/workflows/wdk-beta-check.yml` is available on demand for a one-shot aligned WDK bump that checks the audit policy before opening a PR; unresolved findings stop the workflow.
+- `.github/workflows/wdk-beta-check.yml` remains gated: the updater rejects bulk beta candidates outside the reviewed compatibility matrix before changing files or installing packages. Independently versioned module upgrades require manual matrix/source review first; unresolved audit findings still stop verification.
 - CI enforces lockfile integrity on every push/PR: `pnpm run smoke:lockfile` verifies `pnpm-lock.yaml` matches `package.json`, pull requests that change `package.json` must also update `pnpm-lock.yaml`, and `pnpm run review:lockfile -- --pr-review` prints resolved version diffs for security review.
 
 `verify:ci` runs dependency regression tests and the complete audit before creating a ZIP. See the [release gate and required GitHub settings](../README.md#release-dependency-gate) for the enforced paths and settings outside source control. Branch protection and deployment environment controls are not configured by these source changes.
@@ -149,10 +155,11 @@ Runtime and build dependency hygiene is enforced by GitHub Actions and maintaine
 
 When Tether ships a newer beta with patched transitive dependencies:
 
-1. Run `node scripts/check-wdk-beta.mjs --apply` manually or through `.github/workflows/wdk-beta-check.yml`.
-2. Ensure all five direct `@tetherto/wdk*` pins and the `@tetherto/wdk-wallet` override stay on the same version.
-3. Run `pnpm run smoke:wdk-deps`, `pnpm run smoke:audit`, and `pnpm run sync:audit-allowlist` to identify unresolved findings; remove obsolete reviewed exceptions manually as advisory chains clear.
-4. Review the resolved lockfile diff from `pnpm run review:lockfile -- --pr-review` before merging.
+1. Run `pnpm run check:wdk-beta` to report orchestrator update availability. `--apply` refuses an unreviewed bulk bump before mutation.
+2. Verify the exact package versions, source constraints, release ages and integrity. Update the reviewed matrix and manifest together; use one base-wallet version supported by every selected module rather than matching their beta numbers.
+3. Resolve and review the existing lockfile, verify every new transitive package, then install with `pnpm install --frozen-lockfile`.
+4. Run `pnpm run verify:ci` and packaged-browser acceptance. Keep golden vectors and security assertions intact; a failure requires investigation, not an exception or relaxed test.
+5. Review the resolved lockfile diff from `pnpm run review:lockfile -- --pr-review` before merging.
 
 Local maintainer commands:
 
