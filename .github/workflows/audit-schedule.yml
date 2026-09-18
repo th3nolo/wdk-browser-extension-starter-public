@@ -5,41 +5,19 @@ on:
     - cron: "0 6 * * 1"
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   audit:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
     steps:
-      - name: Checkout
-        uses: actions/checkout@v6
-
-      - name: Setup Node
-        uses: actions/setup-node@v6
+      - name: Checkout event commit
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
-          node-version: 22
+          ref: ${{ github.sha }}
+          persist-credentials: false
 
-      - name: Enable pnpm
-        run: |
-          corepack enable
-          corepack prepare pnpm@11.0.9 --activate
-
-      - name: Setup pnpm cache
-        uses: actions/setup-node@v6
-        with:
-          node-version: 22
-          cache: pnpm
-          cache-dependency-path: pnpm-lock.yaml
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Verify lockfile integrity
-        run: pnpm run smoke:lockfile
-
-      - name: Verify audit allowlist sync
-        run: pnpm run sync:audit-allowlist -- --check
-
-      - name: Production audit smoke
-        run: pnpm run smoke:audit
-
-      - name: WDK dependency alignment
-        run: pnpm run smoke:wdk-deps
+      - name: Release dependency gate
+        uses: ./.github/actions/dependency-gate

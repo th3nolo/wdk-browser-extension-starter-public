@@ -1,0 +1,23 @@
+name: Release dependency gate
+description: Audit the exact event commit and frozen runtime/build dependency graph
+runs:
+  using: composite
+  steps:
+    - name: Setup pinned Node
+      uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+      with:
+        node-version-file: .nvmrc
+
+    - name: Enable pinned pnpm
+      shell: bash
+      run: |
+        corepack enable
+        corepack prepare pnpm@11.0.9 --activate
+
+    - name: Test dependency gate failure paths
+      shell: bash
+      run: node --test scripts/lib/*.test.mjs scripts/release-gate.test.mjs
+
+    - name: Audit frozen event commit
+      shell: bash
+      run: node scripts/release-gate.mjs

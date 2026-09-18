@@ -3,40 +3,38 @@ name: CI
 on:
   push:
     branches: [master]
+    tags: ["**"]
   pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
 
 jobs:
   verify:
-    runs-on: ubuntu-latest
+    name: Release validation
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
     steps:
-      - name: Checkout
-        uses: actions/checkout@v6
+      - name: Checkout event commit
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
+          ref: ${{ github.sha }}
           fetch-depth: 0
+          persist-credentials: false
 
-      - name: Setup Node
-        uses: actions/setup-node@v6
-        with:
-          node-version: 22
+      - name: Release dependency gate
+        id: dependencies
+        uses: ./.github/actions/dependency-gate
 
-      - name: Enable pnpm
-        run: |
-          corepack enable
-          corepack prepare pnpm@11.0.9 --activate
-
-      - name: Setup pnpm cache
-        uses: actions/setup-node@v6
-        with:
-          node-version: 22
-          cache: pnpm
-          cache-dependency-path: pnpm-lock.yaml
-
-      - name: Install dependencies
+      - name: Install audited dependencies with approved build scripts
         run: pnpm install --frozen-lockfile
 
       - name: Fetch base branch
         if: github.event_name == 'pull_request'
-        run: git fetch origin "${{ github.base_ref }}"
+        env:
+          GITHUB_BASE_REF: ${{ github.base_ref }}
+        run: git fetch origin "$GITHUB_BASE_REF"
 
       - name: Lockfile PR policy
         if: github.event_name == 'pull_request'
@@ -51,14 +49,18 @@ jobs:
         run: pnpm run review:lockfile -- --pr-review
 
       - name: Run CI verifier
+        id: verify
         run: pnpm run verify:ci
 
+      - name: Verify build preserved audited sources and lockfile
+        run: git diff --exit-code HEAD --
+
       - name: Upload extension package
-        uses: actions/upload-artifact@v7
-        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        if: success() && steps.dependencies.outcome == 'success' && steps.verify.outcome == 'success'
         with:
-          name: wdk-browser-extension-starter-chrome
+          name: wdk-browser-extension-starter-chrome-${{ github.sha }}
           path: |
             .output/chrome-mv3
             .output/*.zip
-          if-no-files-found: ignore
+          if-no-files-found: error
