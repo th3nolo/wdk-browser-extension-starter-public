@@ -1,3 +1,4 @@
+import { required } from "../../test-utils";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   DAPP_TRANSACTION_TTL_MS,
@@ -31,7 +32,7 @@ async function waitForQueuedPending(walletId = "wallet-1") {
   await vi.waitFor(() => {
     expect(listPendingDappTransactions(walletId).length).toBeGreaterThan(0);
   });
-  return listPendingDappTransactions(walletId)[0];
+  return required(listPendingDappTransactions(walletId)[0]);
 }
 
 beforeEach(() => {
@@ -73,7 +74,7 @@ describe("pending dApp transaction queue", () => {
       value: "1"
     });
     expect(sessionStorage[DAPP_APPROVALS_STORAGE_KEY]).toBeTruthy();
-    expect((sessionStorage[DAPP_APPROVALS_STORAGE_KEY] as Array<{ value: string }>)[0].value).toBe("1");
+    expect(required((sessionStorage[DAPP_APPROVALS_STORAGE_KEY] as Array<{ value: string }>)[0]).value).toBe("1");
 
     await resolvePendingDappTransaction(queued.id, "0xtxhash");
     await expect(pending).resolves.toBe("0xtxhash");
@@ -166,7 +167,7 @@ describe("pending dApp transaction queue", () => {
     await vi.waitFor(() => {
       expect(listPendingSignatures("wallet-1")).toHaveLength(1);
     });
-    const queued = listPendingSignatures("wallet-1")[0];
+    const queued = required(listPendingSignatures("wallet-1")[0]);
 
     await expect(removePendingDappTransaction(queued.id)).resolves.toBeUndefined();
     expect(listPendingSignatures("wallet-1")).toHaveLength(1);

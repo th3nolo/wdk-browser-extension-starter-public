@@ -1,3 +1,4 @@
+import { required } from "../../test-utils";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { clearSession, createSession } from "../session/session";
 import { encryptSeedPhrase } from "../crypto/vault";
@@ -77,7 +78,7 @@ async function queuedTransaction(controller: ReturnType<typeof createBackgroundW
   // Observe failures immediately, including rejection/expiry while approval is paused.
   const outcome = response.then((value) => ({ value }), (error: unknown) => ({ error }));
   await vi.waitFor(() => expect(listPendingDappTransactions()).toHaveLength(1));
-  return { id: listPendingDappTransactions()[0].id, response, outcome };
+  return { id: required(listPendingDappTransactions()[0]).id, response, outcome };
 }
 
 describe("controller approval execution races", () => {
@@ -98,7 +99,7 @@ describe("controller approval execution races", () => {
     const signature = controller.handleMessage({ type: "DAPP_REQUEST", method: "personal_sign",
       params: ["hello", "0x9858EfFD232B4033E47d90003D41EC34EcaEda94"] }, dappSender(origin));
     await vi.waitFor(() => expect(listPendingSignatures()).toHaveLength(1));
-    const id = listPendingSignatures()[0].id;
+    const id = required(listPendingSignatures()[0]).id;
     const results = await Promise.allSettled([
       controller.handleMessage({ type: "APPROVE_SIGNATURE", id }, POPUP_SENDER),
       controller.handleMessage({ type: "APPROVE_SIGNATURE", id }, POPUP_SENDER)
@@ -317,7 +318,7 @@ describe("controller approval execution races", () => {
     await vi.waitFor(() => expect(submitDappTransactionForApproval).toHaveBeenCalledTimes(1));
     const second = controller.handleMessage({ ...transaction, params: [{ ...transaction.params[0], value: "0x2" }] }, dappSender(origin));
     await vi.waitFor(() => expect(listPendingDappTransactions()).toHaveLength(1));
-    await controller.handleMessage({ type: "APPROVE_DAPP_TRANSACTION", id: listPendingDappTransactions()[0].id }, POPUP_SENDER);
+    await controller.handleMessage({ type: "APPROVE_DAPP_TRANSACTION", id: required(listPendingDappTransactions()[0]).id }, POPUP_SENDER);
     await expect(second).resolves.toBe("0xtxhash");
     submission.resolve("0xfirst");
     await approval;
@@ -348,7 +349,7 @@ describe("controller approval execution races", () => {
     // Simulate persisted state at the exact restart boundary; no old worker or
     // callback survives. Session storage clones records, as the browser does.
     const approvals = harness.sessionStorage[DAPP_APPROVALS_STORAGE_KEY] as StoredPendingApproval[];
-    approvals[0].executionState = executionState;
+    required(approvals[0]).executionState = executionState;
     resetPendingDappTransactionsForTests();
     const restarted = createBackgroundWalletController();
     await restarted.initialize();

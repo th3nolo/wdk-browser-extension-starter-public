@@ -1,3 +1,4 @@
+import { required } from "../test-utils";
 import { describe, expect, it } from "vitest";
 import { groupBalancesByAsset, isMultiChainAsset } from "./balance-grouping";
 import type { BalanceRecord } from "./types";
@@ -16,15 +17,15 @@ describe("groupBalancesByAsset", () => {
 
     expect(groups).toHaveLength(1);
     expect(groups[0]).toMatchObject({ asset: "USDt", decimals: 6, totalAmount: "1500000" });
-    expect(groups[0].chains).toHaveLength(3);
-    expect(isMultiChainAsset(groups[0])).toBe(true);
+    expect(required(groups[0]).chains).toHaveLength(3);
+    expect(isMultiChainAsset(required(groups[0]))).toBe(true);
   });
 
   it("orders chains within a group by balance, largest first", () => {
-    const [group] = groupBalancesByAsset([
+    const group = required(groupBalancesByAsset([
       balance("arbitrum", "ETH", "1000000000000000000", 18),
       balance("ethereum", "ETH", "3000000000000000000", 18)
-    ]);
+    ])[0]);
 
     expect(group.totalAmount).toBe("4000000000000000000");
     expect(group.chains.map((entry) => entry.chain)).toEqual(["ethereum", "arbitrum"]);

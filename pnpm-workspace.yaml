@@ -16,21 +16,18 @@ trustPolicyExclude:
 overrides:
   "@tetherto/wdk-wallet": 1.0.0-beta.17
   # Security fixes restricted to the affected API families and consumers.
-  "node-notifier>uuid": 11.1.1
-  "fx-runner>shell-quote": 1.10.0
-  "web-ext-run>tmp": 0.2.7
-  "firefox-profile>adm-zip": 0.6.1
-  "wxt>esbuild": 0.28.1
   "vite@8": 8.0.16
   "vite@6": 6.4.3
   "undici@7": 7.29.1
   "js-yaml@4": 4.3.2
   "protobufjs@7": 7.6.6
-  "brace-expansion@1": 1.1.18
-  "brace-expansion@5": 5.0.9
+  "brace-expansion@1": 1.1.21
+  "brace-expansion@5": 5.0.12
   "postcss@8": 8.5.23
   "nanoid@3": 3.3.18
   "@opentelemetry/core@2": 2.8.0
+  "@grpc/grpc-js@1": 1.14.5
+  "source-map-js@1": 1.2.2
 packageExtensions:
   "@bitcoinerlab/descriptors@3.1.7":
     dependencies:

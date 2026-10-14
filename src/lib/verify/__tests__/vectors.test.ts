@@ -1,3 +1,4 @@
+import { required } from "../../../test-utils";
 import { describe, expect, it, test } from "vitest";
 import { calldataByteLength, calldataDigest } from "../calldata";
 import {
@@ -62,14 +63,14 @@ describe("WYSIWYS reference vectors", () => {
     expect(personal.messageDigest).toBe("0xaa744ba2ca576ec62ca0045eca00ad3917fdf7ffa34fbbae50828a5a69c1580e");
 
     const typed = buildTypedDataVerificationEvidence(
-      ["0x9858EfFD232B4033E47d90003D41EC34EcaEda94", typedDataVectors[0].payload],
+      ["0x9858EfFD232B4033E47d90003D41EC34EcaEda94", required(typedDataVectors[0]).payload],
       "eth_signTypedData_v4",
-      typedDataVectors[0].payload
+      required(typedDataVectors[0]).payload
     );
     expect(typed.kind).toBe("eth_signTypedData_v4");
-    expect(typed.finalDigest).toBe(typedDataVectors[0].expected.finalDigest);
-    expect(typed.domainSeparator).toBe(typedDataVectors[0].expected.domainSeparator);
-    expect(typed.messageHash).toBe(typedDataVectors[0].expected.messageHash);
+    expect(typed.finalDigest).toBe(required(typedDataVectors[0]).expected.finalDigest);
+    expect(typed.domainSeparator).toBe(required(typedDataVectors[0]).expected.domainSeparator);
+    expect(typed.messageHash).toBe(required(typedDataVectors[0]).expected.messageHash);
   });
 });
 

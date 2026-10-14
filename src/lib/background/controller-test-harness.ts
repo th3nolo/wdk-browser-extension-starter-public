@@ -1,4 +1,5 @@
 import { beforeEach, vi } from "vitest";
+import { required } from "../../test-utils";
 import { peekSession, resetSessionForTests } from "../session/session";
 import type { StoredState } from "../storage/store";
 import { resetPendingSignaturesForTests } from "./pending-signatures";
@@ -67,7 +68,7 @@ export function createControllerTestHarness() {
         local: {
           get: vi.fn(async () => ({ [STORE_KEY]: state.persisted })),
           set: vi.fn(async (next: Record<string, StoredState>) => {
-            state.persisted = next[STORE_KEY];
+            state.persisted = required(next[STORE_KEY]);
           })
         },
         session: {

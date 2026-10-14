@@ -78,7 +78,7 @@ export function neutrals(mode: ThemeMode, hue: number, chroma?: number): Record<
 }
 
 /* ---- build the full token map from a skin spec ------------------------ */
-export function expand(t: ThemeSpec): Record<string, string> {
+export function expand(t: ThemeSpec): Record<string, string> & Record<"--accent" | "--accent-ink", string> {
   const shape = SHAPE[t.shape] || SHAPE.rounded;
   const dens = DENSITY[t.density] || DENSITY.cozy;
   const n = neutrals(t.mode, t.tint == null ? 250 : t.tint, t.chroma);
@@ -135,7 +135,7 @@ export function expand(t: ThemeSpec): Record<string, string> {
 // brand mark tokens + color-scheme + data-* attributes that drive CSS variants.
 export function applySkin(el: HTMLElement, spec: ThemeSpec): ThemeSpec {
   const tokens = expand(spec);
-  for (const k in tokens) el.style.setProperty(k, tokens[k]);
+  for (const [key, value] of Object.entries(tokens)) el.style.setProperty(key, value);
   if (spec.brand) {
     el.style.setProperty("--mark-fill", spec.brand.markFill || tokens["--accent"]);
     el.style.setProperty("--mark-ink", spec.brand.markInk || tokens["--accent-ink"]);
@@ -151,5 +151,6 @@ export function applySkin(el: HTMLElement, spec: ThemeSpec): ThemeSpec {
 /* ---- apply by id (falls back to the default skin) --------------------- */
 export function applySkinById(el: HTMLElement, id: string): ThemeSpec {
   const spec = SKIN_MAP[id] || SKIN_MAP[DEFAULT_SKIN_ID];
+  if (!spec) throw new Error("Default skin is missing");
   return applySkin(el, spec);
 }

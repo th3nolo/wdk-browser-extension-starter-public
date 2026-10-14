@@ -1,3 +1,4 @@
+import { required } from "../../test-utils";
 import { describe, expect, it, vi } from "vitest";
 import { createSession, resetSessionForTests } from "../session/session";
 import { resetPendingSignaturesForTests } from "./pending-signatures";
@@ -43,7 +44,7 @@ describe("background wallet controller - signature approvals", () => {
     expect(state.pendingSignatures).toHaveLength(1);
     expect(state.pendingSignatures[0]).toMatchObject({ origin: "https://dapp.example", message: "Sign in to WDK demo" });
 
-    await controller.handleMessage({ type: "APPROVE_SIGNATURE", id: state.pendingSignatures[0].id }, POPUP_SENDER);
+    await controller.handleMessage({ type: "APPROVE_SIGNATURE", id: required(state.pendingSignatures[0]).id }, POPUP_SENDER);
 
     await expect(signature).resolves.toBe("0xsigned");
   });
@@ -113,7 +114,7 @@ describe("background wallet controller - signature approvals", () => {
     const state = await controller.handleMessage({ type: "GET_STATE" }, POPUP_SENDER) as PopupState;
     expect(state.pendingSignatures).toHaveLength(1);
 
-    await controller.handleMessage({ type: "APPROVE_SIGNATURE", id: state.pendingSignatures[0].id }, POPUP_SENDER);
+    await controller.handleMessage({ type: "APPROVE_SIGNATURE", id: required(state.pendingSignatures[0]).id }, POPUP_SENDER);
 
     const signature = controller.handleMessage({
       type: "DAPP_REQUEST",
