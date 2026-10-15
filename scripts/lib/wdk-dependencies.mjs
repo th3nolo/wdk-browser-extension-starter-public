@@ -2,11 +2,11 @@
 // base wallet; matching their beta numbers would force incompatible source pins.
 export const WDK_WALLET_VERSION = "1.0.0-beta.17";
 export const WDK_DEPENDENCIES = Object.freeze({
-  "@tetherto/wdk": "1.0.0-beta.17",
-  "@tetherto/wdk-wallet-btc": "1.0.0-beta.14",
-  "@tetherto/wdk-wallet-evm": "1.0.0-beta.17",
+  "@tetherto/wdk": "1.0.0-beta.19",
+  "@tetherto/wdk-wallet-btc": "1.0.0-beta.17",
+  "@tetherto/wdk-wallet-evm": "1.0.0-beta.20",
   "@tetherto/wdk-wallet-solana": "1.0.0-beta.13",
-  "@tetherto/wdk-wallet-spark": "1.0.0-beta.23"
+  "@tetherto/wdk-wallet-spark": "1.0.0-beta.28"
 });
 
 export function assertWdkManifest(dependencies) {
