@@ -1,3 +1,4 @@
+import { required } from "../../test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { listAccounts, listAllBalances, listBalances, sendDappEvmTransaction, sendTransaction } from "./client";
 import { resetWdkRuntimeCacheForTests } from "./runtime-cache";
@@ -72,14 +73,14 @@ describe("WDK send adapter", () => {
     const accounts = await listAccounts(seedBytes("seed"), "wallet-1", 2);
 
     expect(accounts).toHaveLength(14);
-    expect(wdkState.instances[0].getAccount).toHaveBeenCalledWith("bitcoin", 0);
-    expect(wdkState.instances[0].getAccount).toHaveBeenCalledWith("bitcoin", 1);
-    expect(wdkState.instances[0].getAccount).toHaveBeenCalledWith("ethereum", 0);
-    expect(wdkState.instances[0].getAccount).toHaveBeenCalledWith("polygon", 1);
-    expect(wdkState.instances[0].getAccount).toHaveBeenCalledWith("arbitrum", 1);
-    expect(wdkState.instances[0].getAccount).toHaveBeenCalledWith("plasma", 1);
-    expect(wdkState.instances[0].getAccount).toHaveBeenCalledWith("solana", 1);
-    expect(wdkState.instances[0].getAccount).toHaveBeenCalledWith("spark", 1);
+    expect(required(wdkState.instances[0]).getAccount).toHaveBeenCalledWith("bitcoin", 0);
+    expect(required(wdkState.instances[0]).getAccount).toHaveBeenCalledWith("bitcoin", 1);
+    expect(required(wdkState.instances[0]).getAccount).toHaveBeenCalledWith("ethereum", 0);
+    expect(required(wdkState.instances[0]).getAccount).toHaveBeenCalledWith("polygon", 1);
+    expect(required(wdkState.instances[0]).getAccount).toHaveBeenCalledWith("arbitrum", 1);
+    expect(required(wdkState.instances[0]).getAccount).toHaveBeenCalledWith("plasma", 1);
+    expect(required(wdkState.instances[0]).getAccount).toHaveBeenCalledWith("solana", 1);
+    expect(required(wdkState.instances[0]).getAccount).toHaveBeenCalledWith("spark", 1);
     expect(accounts).toEqual(expect.arrayContaining([
       expect.objectContaining({ walletId: "wallet-1", chain: "ethereum", index: 1, path: "m/44'/60'/0'/0/1" }),
       expect.objectContaining({ walletId: "wallet-1", chain: "bitcoin", index: 1, path: "m/84'/0'/0'/0/1" }),
@@ -87,7 +88,7 @@ describe("WDK send adapter", () => {
       expect.objectContaining({ walletId: "wallet-1", chain: "spark", index: 1, path: "m/44'/998'/0'/0/1" })
     ]));
     expect(wdkState.instances).toHaveLength(1);
-    expect(wdkState.instances[0].dispose).not.toHaveBeenCalled();
+    expect(required(wdkState.instances[0]).dispose).not.toHaveBeenCalled();
   });
 
   it("keeps non-Spark accounts available when Spark account listing cannot reach its service", async () => {
@@ -141,7 +142,7 @@ describe("WDK send adapter", () => {
       path: "m/44'/60'/0'/0/0"
     });
 
-    expect(wdkState.instances[0].getAccount).toHaveBeenCalledWith("ethereum", 0);
+    expect(required(wdkState.instances[0]).getAccount).toHaveBeenCalledWith("ethereum", 0);
     expect(wdkState.account.getBalance).toHaveBeenCalledOnce();
     expect(wdkState.account.getTokenBalance).toHaveBeenCalledWith("0xdAC17F958D2ee523a2206206994597C13D831ec7");
     expect(wdkState.account.getTokenBalance).toHaveBeenCalledWith("0x68749665FF8D2d112Fa859AA293F07A622782F38");
@@ -151,7 +152,7 @@ describe("WDK send adapter", () => {
       { chain: "ethereum", asset: "XAUt", amount: "100000000", symbol: "XAUt", decimals: 6 }
     ]);
     expect(wdkState.instances).toHaveLength(1);
-    expect(wdkState.instances[0].dispose).not.toHaveBeenCalled();
+    expect(required(wdkState.instances[0]).dispose).not.toHaveBeenCalled();
   });
 
   it("falls back to public Bitcoin address APIs when the WDK Blockbook balance endpoint fails", async () => {
@@ -206,7 +207,7 @@ describe("WDK send adapter", () => {
       path: "m/44'/998'/0'/0/0"
     })).rejects.toThrow("Invalid Lightning (Spark) address for balance refresh");
 
-    expect(wdkState.instances[0].getAccount).not.toHaveBeenCalled();
+    expect(required(wdkState.instances[0]).getAccount).not.toHaveBeenCalled();
     expect(wdkState.account.getBalance).not.toHaveBeenCalled();
     expect(fetchMock).not.toHaveBeenCalled();
   });
@@ -254,14 +255,14 @@ describe("WDK send adapter", () => {
       amount: "1.25"
     });
 
-    expect(wdkState.instances[0].getAccount).toHaveBeenCalledWith("ethereum", 0);
+    expect(required(wdkState.instances[0]).getAccount).toHaveBeenCalledWith("ethereum", 0);
     expect(wdkState.account.sendTransaction).toHaveBeenCalledWith({
       to: "0x0000000000000000000000000000000000000001",
       value: 1_250_000_000_000_000_000n
     });
     expect(wdkState.account.transfer).not.toHaveBeenCalled();
     expect(wdkState.instances).toHaveLength(1);
-    expect(wdkState.instances[0].dispose).not.toHaveBeenCalled();
+    expect(required(wdkState.instances[0]).dispose).not.toHaveBeenCalled();
     expect(tx).toMatchObject({
       walletId: "wallet-1",
       chain: "ethereum",
@@ -309,7 +310,7 @@ describe("WDK send adapter", () => {
       amount
     });
 
-    expect(wdkState.instances[0].getAccount).toHaveBeenCalledWith(wdkKey, 0);
+    expect(required(wdkState.instances[0]).getAccount).toHaveBeenCalledWith(wdkKey, 0);
     expect(wdkState.account.sendTransaction).toHaveBeenCalledWith({ to, value });
     expect(wdkState.account.transfer).not.toHaveBeenCalled();
     expect(tx).toMatchObject({ chain, asset, to, amount, status: "pending", txHash: "0xnative" });

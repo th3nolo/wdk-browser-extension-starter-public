@@ -16,7 +16,7 @@ export type GroupedAssetBalance = {
   symbol: string;
   decimals: number;
   totalAmount: string;
-  chains: AssetChainBalance[];
+  chains: [AssetChainBalance, ...AssetChainBalance[]];
 };
 
 function compareAmountsDesc(left: string, right: string): number {

@@ -284,14 +284,14 @@ export async function approveDappConnection(origin: string, accountIndexes: numb
   requireWalletSession(walletId);
   const wallet = store.wallets.find((entry) => entry.id === walletId);
   if (!wallet) throw new Error("Active wallet not found");
+  const primaryIndex = accountIndexes[0];
   if (
-    accountIndexes.length === 0 ||
+    primaryIndex === undefined ||
     accountIndexes.some((index) => !Number.isInteger(index) || index < 0 || index >= wallet.accountCount)
   ) {
     throw new Error("Selected account is not available for this wallet");
   }
   // Primary stays first (back-compat); the rest are the sorted unique remainder.
-  const primaryIndex = accountIndexes[0];
   const sortedUnique = [...new Set(accountIndexes)].sort((a, b) => a - b);
   const orderedIndexes = [primaryIndex, ...sortedUnique.filter((index) => index !== primaryIndex)];
   const now = new Date().toISOString();

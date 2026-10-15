@@ -9,6 +9,7 @@ export const MAX_DISPLAY_WHOLE_DIGITS = 24;
 export function parseDecimalAmount(amount: string): { whole: string; fraction: string } | null {
   if (!DECIMAL_AMOUNT.test(amount)) return null;
   const [whole, fraction = ""] = amount.split(".");
+  if (whole === undefined) return null;
   return { whole, fraction };
 }
 

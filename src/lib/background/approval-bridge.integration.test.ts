@@ -1,3 +1,4 @@
+import { required } from "../../test-utils";
 /** @vitest-environment jsdom */
 import { afterEach, beforeAll, expect, it, vi } from "vitest";
 import { installInpageProvider } from "../provider/inpage";
@@ -55,7 +56,7 @@ it("returns one fake submission through the actual inpage, content and backgroun
   Object.assign(browser, { alarms: { create: vi.fn(async () => undefined), onAlarm: { addListener: vi.fn() } } });
   (background.default as unknown as () => void)();
   const sendMessage = (message: unknown, sender: Browser.runtime.MessageSender) => new Promise<unknown>((resolve) => {
-    expect(runtimeListeners[0](message, sender, resolve)).toBe(true);
+    expect(required(runtimeListeners[0])(message, sender, resolve)).toBe(true);
   });
   vi.stubGlobal("chrome", { runtime: { sendMessage: (message: unknown, respond: (value: unknown) => void) => {
     void sendMessage(message, dappSender(origin)).then(respond);
@@ -76,13 +77,13 @@ it("returns one fake submission through the actual inpage, content and backgroun
       to: "0x0000000000000000000000000000000000000001", value: "0x1"
     }] });
     await vi.waitFor(() => expect(listPendingDappTransactions()).toHaveLength(1));
-    const message = { type: "APPROVE_DAPP_TRANSACTION", id: listPendingDappTransactions()[0].id };
+    const message = { type: "APPROVE_DAPP_TRANSACTION", id: required(listPendingDappTransactions()[0]).id };
     const approvals = await Promise.all([sendMessage(message, POPUP_SENDER), sendMessage(message, POPUP_SENDER)]);
     await expect(response).resolves.toBe("0xtxhash");
     expect(submitDappTransactionForApproval).toHaveBeenCalledTimes(1);
     const errors = approvals.filter(isBackgroundErrorResponse);
     expect(errors).toHaveLength(1);
-    expect(errors[0][BACKGROUND_ERROR_RESPONSE_KEY].message).toContain("already being processed");
+    expect(required(errors[0])[BACKGROUND_ERROR_RESPONSE_KEY].message).toContain("already being processed");
   } finally {
     teardown();
     script?.remove();

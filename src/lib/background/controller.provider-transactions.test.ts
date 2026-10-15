@@ -1,3 +1,4 @@
+import { required } from "../../test-utils";
 import { describe, expect, it, vi } from "vitest";
 import { createSession } from "../session/session";
 import { DAPP_PROVIDER_EVENT_MESSAGE } from "./dapp-provider-events";
@@ -103,7 +104,7 @@ describe("background wallet controller - provider methods and transactions", () 
     await expect(controller.handleMessage({ type: "DAPP_REQUEST", method: "eth_getCode", params: [account, "latest"] }, sender)).resolves.toBe("0x");
 
     const ethCallBody = JSON.parse(String(fetchMock.mock.calls.find(([, init]) => String(init?.body).includes('"eth_call"'))?.[1]?.body)) as { params: Array<Record<string, unknown>> };
-    expect(ethCallBody.params[0].from).toBe(account);
+    expect(required(ethCallBody.params[0]).from).toBe(account);
     expect(fetchMock.mock.calls.every(([url]) => url === "https://rpc.override.example")).toBe(true);
   });
 
@@ -209,7 +210,7 @@ describe("background wallet controller - provider methods and transactions", () 
       params: [{ chainId: "0x89" }]
     }, dappSender("https://dapp.example"))).resolves.toBeNull();
 
-    expect(harness.persisted.connectedSites[0].evmChainId).toBe(137);
+    expect(required(harness.persisted.connectedSites[0]).evmChainId).toBe(137);
     await expect(controller.handleMessage({
       type: "DAPP_REQUEST",
       method: "eth_chainId"
@@ -280,14 +281,14 @@ describe("background wallet controller - provider methods and transactions", () 
     }, dappSender("https://dapp.example")) as Promise<string>;
 
     const state = await waitForPendingSignature(controller);
-    expect(state.pendingSignatures[0].verification).toMatchObject({
+    expect(required(state.pendingSignatures[0]).verification).toMatchObject({
       kind: "personal_sign",
       algorithm: "eip191-personal-sign",
       messageDigest: expect.stringMatching(/^0x[0-9a-f]{64}$/),
       requestDigest: expect.stringMatching(/^0x[0-9a-f]{64}$/),
       verifiedByVectors: true
     });
-    await controller.handleMessage({ type: "APPROVE_SIGNATURE", id: state.pendingSignatures[0].id }, POPUP_SENDER);
+    await controller.handleMessage({ type: "APPROVE_SIGNATURE", id: required(state.pendingSignatures[0]).id }, POPUP_SENDER);
 
     await expect(signature).resolves.toBe("0xsigned");
     expect(signDappSignatureForApproval).toHaveBeenCalledWith(
@@ -326,7 +327,7 @@ describe("background wallet controller - provider methods and transactions", () 
         messageDigest: "0xaa744ba2ca576ec62ca0045eca00ad3917fdf7ffa34fbbae50828a5a69c1580e"
       })
     });
-    await controller.handleMessage({ type: "APPROVE_SIGNATURE", id: state.pendingSignatures[0].id }, POPUP_SENDER);
+    await controller.handleMessage({ type: "APPROVE_SIGNATURE", id: required(state.pendingSignatures[0]).id }, POPUP_SENDER);
 
     await expect(signature).resolves.toBe("0xsigned");
     expect(signDappSignatureForApproval).toHaveBeenCalledWith(
@@ -354,8 +355,8 @@ describe("background wallet controller - provider methods and transactions", () 
     }, dappSender("https://dapp.example"));
 
     const state = await waitForPendingSignature(controller);
-    expect(state.pendingSignatures[0].message).toBe("0x48656c6c6f");
-    expect(state.pendingSignatures[0].displayMessage).toBe("Hello");
+    expect(required(state.pendingSignatures[0]).message).toBe("0x48656c6c6f");
+    expect(required(state.pendingSignatures[0]).displayMessage).toBe("Hello");
   });
 
   it("rejects eth_signTypedData_v4 when domain.chainId does not match the connected chain", async () => {
@@ -408,8 +409,8 @@ describe("background wallet controller - provider methods and transactions", () 
     }, dappSender("https://dapp.example")) as Promise<string>;
 
     const state = await waitForPendingSignature(controller);
-    expect(state.pendingSignatures[0].kind).toBe("eth_signTypedData_v3");
-    expect(state.pendingSignatures[0].verification).toMatchObject({
+    expect(required(state.pendingSignatures[0]).kind).toBe("eth_signTypedData_v3");
+    expect(required(state.pendingSignatures[0]).verification).toMatchObject({
       kind: "eth_signTypedData_v3",
       algorithm: "eip712",
       finalDigest: expect.stringMatching(/^0x[0-9a-f]{64}$/),
@@ -418,7 +419,7 @@ describe("background wallet controller - provider methods and transactions", () 
       primaryType: "Mail",
       verifiedByVectors: true
     });
-    await controller.handleMessage({ type: "APPROVE_SIGNATURE", id: state.pendingSignatures[0].id }, POPUP_SENDER);
+    await controller.handleMessage({ type: "APPROVE_SIGNATURE", id: required(state.pendingSignatures[0]).id }, POPUP_SENDER);
 
     await expect(signature).resolves.toBe("0xtyped");
     expect(signDappSignatureForApproval).toHaveBeenCalledWith(
@@ -464,9 +465,9 @@ describe("background wallet controller - provider methods and transactions", () 
     }, dappSender("https://dapp.example"));
 
     const state = await waitForPendingSignature(controller);
-    expect(state.pendingSignatures[0].kind).toBe("eth_signTypedData_v4");
-    expect(state.pendingSignatures[0].typedData?.primaryType).toBe("Mail");
-    expect(state.pendingSignatures[0].verification).toMatchObject({
+    expect(required(state.pendingSignatures[0]).kind).toBe("eth_signTypedData_v4");
+    expect(required(state.pendingSignatures[0]).typedData?.primaryType).toBe("Mail");
+    expect(required(state.pendingSignatures[0]).verification).toMatchObject({
       kind: "eth_signTypedData_v4",
       algorithm: "eip712",
       primaryType: "Mail",
@@ -513,7 +514,7 @@ describe("background wallet controller - provider methods and transactions", () 
     await controller.handleMessage({ type: "REVOKE_DAPP", origin: "https://dapp.example" }, POPUP_SENDER);
     await cancelled;
 
-    await expect(controller.handleMessage({ type: "APPROVE_SIGNATURE", id: state.pendingSignatures[0].id }, POPUP_SENDER))
+    await expect(controller.handleMessage({ type: "APPROVE_SIGNATURE", id: required(state.pendingSignatures[0]).id }, POPUP_SENDER))
       .rejects.toThrow("Approval request was not found, expired or already resolved");
     expect(signDappSignatureForApproval).not.toHaveBeenCalled();
     const afterRevoke = await controller.handleMessage({ type: "GET_STATE" }, POPUP_SENDER) as PopupState;
@@ -560,7 +561,7 @@ describe("background wallet controller - provider methods and transactions", () 
       expect.objectContaining({ value: 1000000000000000000n })
     );
 
-    const approved = await controller.handleMessage({ type: "APPROVE_DAPP_TRANSACTION", id: state.pendingTransactions[0].id }, POPUP_SENDER) as PopupState;
+    const approved = await controller.handleMessage({ type: "APPROVE_DAPP_TRANSACTION", id: required(state.pendingTransactions[0]).id }, POPUP_SENDER) as PopupState;
 
     await expect(tx).resolves.toBe("0xtxhash");
     expect(submitDappTransactionForApproval).toHaveBeenCalledWith(
@@ -591,7 +592,7 @@ describe("background wallet controller - provider methods and transactions", () 
     }, dappSender("https://dapp.example")) as Promise<string>;
 
     const state = await waitForPendingDappTransaction(controller);
-    await controller.handleMessage({ type: "REJECT_DAPP_TRANSACTION", id: state.pendingTransactions[0].id }, POPUP_SENDER);
+    await controller.handleMessage({ type: "REJECT_DAPP_TRANSACTION", id: required(state.pendingTransactions[0]).id }, POPUP_SENDER);
 
     await expect(tx).rejects.toThrow("User rejected transaction request");
     expect(submitDappTransactionForApproval).not.toHaveBeenCalled();
@@ -705,7 +706,7 @@ describe("background wallet controller - provider methods and transactions", () 
       params: [{ chainId: "0x89" }]
     }, dappSender("https://dapp.example"))).resolves.toBeNull();
 
-    expect(harness.persisted.connectedSites[0].evmChainId).toBe(137);
+    expect(required(harness.persisted.connectedSites[0]).evmChainId).toBe(137);
     expect(harness.tabsSendMessage).toHaveBeenCalledWith(1, {
       type: DAPP_PROVIDER_EVENT_MESSAGE,
       event: "chainChanged",

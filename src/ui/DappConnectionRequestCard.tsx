@@ -37,13 +37,13 @@ export function DappConnectionRequestCard({
   // Default the first/active account checked. Keep selection in sync as the
   // available accounts change (e.g. when switching wallets behind the request).
   const [selected, setSelected] = useState<number[]>(() =>
-    accountIndices.length ? [accountIndices[0]] : []
+    accountIndices.slice(0, 1)
   );
   useEffect(() => {
     setSelected((current) => {
       const filtered = current.filter((index) => accountIndices.includes(index));
       if (filtered.length) return filtered;
-      return accountIndices.length ? [accountIndices[0]] : [];
+      return accountIndices.slice(0, 1);
     });
   }, [accountIndices]);
 

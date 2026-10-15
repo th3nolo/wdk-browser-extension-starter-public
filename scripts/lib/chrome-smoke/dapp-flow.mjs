@@ -239,7 +239,9 @@ export async function runDappFlow(initialStatus, context) {
     })()`, { label: "queue personal_sign" }));
     const signatureId = await step(context, "state summary with pending signature", () => waitForPendingSignatureId(popupWs, dappWs, context, "GET_STATE_SUMMARY after signature request", "window.__wdkSmokeSignatureError ?? ''"));
     await step(context, "approve signature", () => extensionMessage(popupWs, { type: "APPROVE_SIGNATURE", id: signatureId }, context, "APPROVE_SIGNATURE"));
-    await step(context, "wait for signature result", () => waitForCdpExpression(dappWs, "document.getElementById('signature')?.textContent.startsWith('0x')", context.timeoutMs));
+    // Provider rediscovery re-renders the fixture and can reset its display field.
+    // Observe the received result, which survives that render, and validate 65 bytes.
+    await step(context, "wait for signature result", () => waitForCdpExpression(dappWs, "typeof window.__wdkSmokeSignature === 'string' && /^0x[0-9a-fA-F]{130}$/.test(window.__wdkSmokeSignature)", context.timeoutMs));
 
     const unsafeTxError = await step(context, "reject unsafe dapp transaction", () => evaluateCdp(dappWs, `(async () => {
       try {

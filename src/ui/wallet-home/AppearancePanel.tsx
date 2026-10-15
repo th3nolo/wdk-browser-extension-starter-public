@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
-import { SKINS, SKIN_MAP } from "../theme/skins";
-import { applySkin } from "../theme/theme-engine";
+import { SKINS } from "../theme/skins";
+import { applySkinById } from "../theme/theme-engine";
 import { getRoot, getStoredSkin, setSkin } from "../theme/useTheme";
 
 /**
@@ -32,7 +32,7 @@ export function AppearancePanel() {
     // Persist (writes localStorage + applies internally)…
     setSkin(id);
     // …and re-apply explicitly so the whole popup rebrands instantly.
-    applySkin(getRoot(), SKIN_MAP[id]);
+    applySkinById(getRoot(), id);
   }
 
   return (

@@ -30,7 +30,7 @@ export const CHAINS: ChainDefinition[] = CHAIN_METADATA.map((chain) => ({
 
 export const CHAIN_BY_ID = Object.fromEntries(CHAINS.map((chain) => [chain.id, chain])) as Record<ChainId, ChainDefinition>;
 
-export function supportedAssetsForChain(chainId: ChainId): AssetId[] {
+export function supportedAssetsForChain(chainId: ChainId): [AssetId, ...AssetId[]] {
   const chain = CHAIN_BY_ID[chainId];
   return [
     chain.nativeAsset,

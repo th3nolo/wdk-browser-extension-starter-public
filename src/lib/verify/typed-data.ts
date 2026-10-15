@@ -183,9 +183,11 @@ function baseType(type: string): string {
 function parseArrayType(type: string): { itemType: string; length?: number } | undefined {
   const match = /^(.*)\[(\d*)\]$/.exec(type);
   if (!match) return undefined;
+  const [, itemType, length] = match;
+  if (itemType === undefined || length === undefined) return undefined;
   return {
-    itemType: match[1],
-    length: match[2] === "" ? undefined : Number(match[2])
+    itemType,
+    length: length === "" ? undefined : Number(length)
   };
 }
 

@@ -1,3 +1,4 @@
+import { required } from "../../test-utils";
 import { describe, expect, it, vi } from "vitest";
 import { encryptSeedPhrase } from "../crypto/vault";
 import { createSession } from "../session/session";
@@ -246,6 +247,6 @@ describe("background wallet controller - state and wallet commands", () => {
       id: "tx-pending",
       status: "confirmed"
     });
-    expect(harness.persisted.transactions[0].updatedAt).not.toBe("2026-01-01T00:00:00.000Z");
+    expect(required(harness.persisted.transactions[0]).updatedAt).not.toBe("2026-01-01T00:00:00.000Z");
   });
 });

@@ -1,4 +1,5 @@
 // @vitest-environment jsdom
+import { required } from "../../test-utils";
 import { afterEach, describe, expect, it } from "vitest";
 import { SKIN_MAP, SKINS, DEFAULT_SKIN_ID } from "./skins";
 import { expand, applySkin, applySkinById } from "./theme-engine";
@@ -10,13 +11,13 @@ afterEach(() => {
 
 describe("expand()", () => {
   it("emits the evolved accent verbatim and sets a background", () => {
-    const tokens = expand(SKIN_MAP.evolved);
+    const tokens = expand(required(SKIN_MAP.evolved));
     expect(tokens["--accent"]).toBe("#2dd4bf");
     expect(tokens["--bg"]).toBeTruthy();
   });
 
   it("emits the --font-* family stacks from the skin spec", () => {
-    const tokens = expand(SKIN_MAP.evolved);
+    const tokens = expand(required(SKIN_MAP.evolved));
     expect(tokens["--font-head"]).toBe("'Space Grotesk', sans-serif");
     expect(tokens["--font-mono"]).toBe("'JetBrains Mono', monospace");
   });
@@ -33,7 +34,7 @@ describe("expand()", () => {
 describe("applySkin()", () => {
   it("sets data-nav / data-icons / data-theme + color-scheme", () => {
     const el = document.createElement("div");
-    applySkin(el, SKIN_MAP.pulse);
+    applySkin(el, required(SKIN_MAP.pulse));
     expect(el.getAttribute("data-nav")).toBe("pill");
     expect(el.getAttribute("data-icons")).toBe("solid");
     expect(el.getAttribute("data-theme")).toBe("pulse");
@@ -43,7 +44,7 @@ describe("applySkin()", () => {
 
   it("sets the brand mark tokens when the skin has a brand", () => {
     const el = document.createElement("div");
-    applySkin(el, SKIN_MAP.evolved);
+    applySkin(el, required(SKIN_MAP.evolved));
     expect(el.style.getPropertyValue("--mark-fill")).toBe(
       "linear-gradient(145deg, #2dd4bf, #6366f1)"
     );
