@@ -54,7 +54,8 @@ jobs:
           body: |
             Automated WDK beta alignment.
 
-            - Bumps all direct `@tetherto/wdk*` packages and the nested `@tetherto/wdk-wallet` override together
+            - Applies the reviewed per-module WDK matrix and its shared base-wallet override
+            - Verifies each selected module's identity, source constraint and 72-hour release age before mutation
             - Evaluates the reviewed advisory policy; never creates or expands exceptions
             - Passed `pnpm run verify:ci` before opening this PR
 

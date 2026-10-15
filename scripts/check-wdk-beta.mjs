@@ -1,17 +1,11 @@
 import { readFileSync, writeFileSync, appendFileSync } from "node:fs";
 import { spawnSync } from "node:child_process";
 import { resolve } from "node:path";
-import { assertWdkManifest } from "./lib/wdk-dependencies.mjs";
+import { WDK_DEPENDENCIES, WDK_WALLET_VERSION, assertWdkManifest, assertWdkSourceDependencies } from "./lib/wdk-dependencies.mjs";
 
 const root = resolve(".");
 const apply = process.argv.includes("--apply");
-const directPackages = [
-  "@tetherto/wdk",
-  "@tetherto/wdk-wallet-btc",
-  "@tetherto/wdk-wallet-evm",
-  "@tetherto/wdk-wallet-solana",
-  "@tetherto/wdk-wallet-spark"
-];
+const directPackages = Object.keys(WDK_DEPENDENCIES);
 const MINIMUM_RELEASE_AGE_MS = 72 * 60 * 60 * 1000;
 
 function run(command, args) {
@@ -59,7 +53,6 @@ function isPublishedLongEnough(version, timeMetadata, now = Date.now()) {
 }
 
 const pkgPath = resolve(root, "package.json");
-const securityDocPath = resolve(root, "docs/SECURITY.md");
 const workspaceConfigPath = resolve(root, "pnpm-workspace.yaml");
 const pkg = JSON.parse(readFileSync(pkgPath, "utf8"));
 const current = pkg.dependencies["@tetherto/wdk"];
@@ -92,7 +85,8 @@ if (!candidate) {
 }
 
 const skippedByMinimumReleaseAge = latest !== candidate;
-if (compareBetaVersions(candidate, current) <= 0) {
+const matrixChanged = directPackages.some((name) => pkg.dependencies[name] !== WDK_DEPENDENCIES[name]);
+if (compareBetaVersions(candidate, current) <= 0 && !matrixChanged) {
   appendGithubOutput("updated", "false");
   if (skippedByMinimumReleaseAge) appendGithubOutput("blocked_by_minimum_release_age", "true");
   console.log(JSON.stringify({ ok: true, updated: false, current, latest, latestEligible: candidate, skippedByMinimumReleaseAge }, null, 2));
@@ -107,33 +101,39 @@ if (!apply) {
   process.exit(0);
 }
 
-// The upstream modules no longer share a release sequence. A bulk candidate
-// must match the explicitly reviewed matrix before any file or install changes.
-assertWdkManifest(Object.fromEntries(directPackages.map((name) => [name, candidate])));
-for (const name of directPackages) {
-  pkg.dependencies[name] = candidate;
+// Only the orchestrator follows this candidate. Chain modules keep their
+// independently reviewed releases, and newer unreviewed candidates still fail.
+const proposed = { ...WDK_DEPENDENCIES, "@tetherto/wdk": candidate };
+assertWdkManifest(proposed);
+for (const [name, version] of Object.entries(proposed)) {
+  const metadata = JSON.parse(run("pnpm", ["view", `${name}@${version}`, "--json"]));
+  const published = JSON.parse(run("pnpm", ["view", name, "time", "--json"]));
+  if (metadata.name !== name || metadata.version !== version) {
+    throw new Error(`${name}@${version} registry identity mismatch`);
+  }
+  if (!metadata.dist?.tarball?.startsWith("https://registry.npmjs.org/") || !metadata.dist?.integrity) {
+    throw new Error(`${name}@${version} has an unverified registry source`);
+  }
+  if (!isPublishedLongEnough(version, published)) {
+    throw new Error(`${name}@${version} has not met the 72-hour minimum release age`);
+  }
+  assertWdkSourceDependencies(name, metadata.dependencies);
 }
-writeFileSync(pkgPath, `${JSON.stringify(pkg, null, 2)}\n`, "utf8");
+
 const workspaceConfig = readFileSync(workspaceConfigPath, "utf8");
-const updatedWorkspaceConfig = workspaceConfig.replace(/@tetherto\/wdk-wallet:\s*\S+/, `@tetherto/wdk-wallet: ${candidate}`);
-if (updatedWorkspaceConfig === workspaceConfig) {
+const overridePattern = /(@tetherto\/wdk-wallet:\s*)\S+/;
+if (!overridePattern.test(workspaceConfig)) {
   throw new Error("pnpm-workspace.yaml is missing the @tetherto/wdk-wallet override.");
 }
+const updatedWorkspaceConfig = workspaceConfig.replace(overridePattern, (_match, prefix) => `${prefix}${WDK_WALLET_VERSION}`);
+Object.assign(pkg.dependencies, proposed);
+writeFileSync(pkgPath, `${JSON.stringify(pkg, null, 2)}\n`, "utf8");
 writeFileSync(workspaceConfigPath, updatedWorkspaceConfig, "utf8");
 
 run("pnpm", ["install", "--ignore-scripts"]);
 run("node", ["scripts/sync-audit-allowlist.mjs"]);
 run("pnpm", ["run", "smoke:wdk-deps"]);
 run("pnpm", ["run", "smoke:audit"]);
-
-const securityDoc = readFileSync(securityDocPath, "utf8");
-const updatedSecurityDoc = securityDoc.replace(
-  /Direct WDK packages are pinned to `[^`]+`/,
-  `Direct WDK packages are pinned to \`${candidate}\``
-);
-if (updatedSecurityDoc !== securityDoc) {
-  writeFileSync(securityDocPath, updatedSecurityDoc, "utf8");
-}
 
 appendGithubOutput("updated", "true");
 appendGithubOutput("version", candidate);
